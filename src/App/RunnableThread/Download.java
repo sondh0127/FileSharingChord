@@ -1,9 +1,9 @@
 package App.RunnableThread;
 
 import App.Components.MessageType;
+import App.Components.SharedFile;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ProgressBar;
-import App.Components.Book;
 
 import java.io.*;
 import java.net.Socket;
@@ -11,14 +11,14 @@ import java.net.Socket;
 public class Download implements Runnable{
 
     protected Socket socket = null;
-    protected Book currentBook = null;
+    protected SharedFile currentSharedFile = null;
     protected File destinationDir = null;
     protected ProgressBar progressBar = null;
     protected CheckBox checkBox = null;
 
-    public Download(Socket socket, Book book, File dir, ProgressBar bar, CheckBox checkBox) {
+    public Download(Socket socket, SharedFile sharedFile, File dir, ProgressBar bar, CheckBox checkBox) {
         this.socket = socket;
-        this.currentBook = book;
+        this.currentSharedFile = sharedFile;
         this.destinationDir = dir;
         this.progressBar = bar;
         this.checkBox = checkBox;
@@ -28,10 +28,10 @@ public class Download implements Runnable{
         try {
             System.out.println("Download running");
 
-            // Send Book's file location to the owner
+            // Send SharedFile's file location to the owner
             Object[] msgArray = new Object[2];
             msgArray[0] = MessageType.DOWNLOAD_BOOK;
-            msgArray[1] = currentBook.getLocation();
+            msgArray[1] = currentSharedFile.getLocation();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             out.writeObject(msgArray);
             out.flush();
@@ -43,7 +43,7 @@ public class Download implements Runnable{
             } else {
                 filePath = destinationDir + "\\";
             }
-            filePath += currentBook.getTitle() + currentBook.getLocation().substring(currentBook.getLocation().lastIndexOf("."));
+            filePath += currentSharedFile.getTitle() + currentSharedFile.getLocation().substring(currentSharedFile.getLocation().lastIndexOf("."));
             System.out.println("downloading file's destination: " + filePath);
 
             // receive file size

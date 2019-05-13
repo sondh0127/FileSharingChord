@@ -3,7 +3,7 @@ package App.Components;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 
-public class Book implements Serializable {
+public class SharedFile implements Serializable {
     private long id;
     private String name;
     private InetSocketAddress ownerAddress;
@@ -13,7 +13,7 @@ public class Book implements Serializable {
     private String location;
     private Boolean isShared;
 
-    public Book(long id, InetSocketAddress address, String title, String author, String isbn, String location, Boolean isShared) {
+    public SharedFile(long id, InetSocketAddress address, String title, String author, String isbn, String location, Boolean isShared) {
         this.id = id;
         this.name = "B" + id;
         this.ownerAddress = address;

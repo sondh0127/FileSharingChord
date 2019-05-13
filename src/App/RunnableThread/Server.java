@@ -161,7 +161,7 @@ public class Server implements Runnable{
                     break;
 
 
-                // Check if book id belongs to a book in the network
+                // Check if sharedFile id belongs to a sharedFile in the network
                 case DOES_BOOK_ID_EXIST:
                     Pair<Long, String> bookPair = (Pair<Long, String>) messageArray[1];
                     response = MessageType.NOT_EXIST;
@@ -170,7 +170,7 @@ public class Server implements Runnable{
                     break;
 
 
-                // Find node responsible for this book
+                // Find node responsible for this sharedFile
                 case FIND_BOOK_SUCCESSOR:
                     id = (long) messageArray[1];
                     response = null;
@@ -179,70 +179,70 @@ public class Server implements Runnable{
                     break;
 
 
-                // This book is assigned to me
+                // This sharedFile is assigned to me
                 case THIS_BOOK_BELONGS_TO_YOU:
-                    Book book = (Book) messageArray[1];
-                    myNode.getBookList().add(book);
-                    System.out.println(myNode.getNodeName() + " - SERVER: New Book belongs to me: " + book.getId() + ", " + book.getTitle());
+                    SharedFile sharedFile = (SharedFile) messageArray[1];
+                    myNode.getSharedFileList().add(sharedFile);
+                    System.out.println(myNode.getNodeName() + " - SERVER: New SharedFile belongs to me: " + sharedFile.getId() + ", " + sharedFile.getTitle());
                     response = MessageType.GOT_IT;
                     break;
 
 
-                // Transfer some of my books to my predecessor
+                // Transfer some of my sharedFiles to my predecessor
                 case TRANSFER_YOUR_BOOKS_TO_ME:
                     id = (long) messageArray[1];
-                    List<Book> myNewBookList = new ArrayList();
-                    List<Book> returnBookList = new ArrayList();
+                    List<SharedFile> myNewSharedFileList = new ArrayList();
+                    List<SharedFile> returnSharedFileList = new ArrayList();
 
-                    for (Book b : myNode.getBookList()) {
-                        // If book id is less than or equal my predecessor
+                    for (SharedFile b : myNode.getSharedFileList()) {
+                        // If sharedFile id is less than or equal my predecessor
                         if (Utils.isIdBetweenUpperEq(b.getId(), myNode.getNodeId(), id)) {
-                            returnBookList.add(b);
+                            returnSharedFileList.add(b);
                         } else {
-                            myNewBookList.add(b);
+                            myNewSharedFileList.add(b);
                         }
                     }
-                    myNode.setBookList(myNewBookList);
-                    System.out.println(myNode.getNodeName() + " - SERVER: Transfer books - my new book list: " + myNewBookList);
-                    System.out.println(myNode.getNodeName() + " - SERVER: Transfer books - return book list: " + returnBookList + " " + returnBookList.size());
-                    response = returnBookList;
+                    myNode.setSharedFileList(myNewSharedFileList);
+                    System.out.println(myNode.getNodeName() + " - SERVER: Transfer sharedFiles - my new sharedFile list: " + myNewSharedFileList);
+                    System.out.println(myNode.getNodeName() + " - SERVER: Transfer sharedFiles - return sharedFile list: " + returnSharedFileList + " " + returnSharedFileList.size());
+                    response = returnSharedFileList;
                     break;
 
 
-                // new books are assigned to me
+                // new sharedFiles are assigned to me
                 case YOU_HAVE_NEW_BOOKS:
-                    List<Book> books = (List<Book>) messageArray[1];
-                    for (Book b : books) {
-                        myNode.getBookList().add(b);
+                    List<SharedFile> sharedFiles = (List<SharedFile>) messageArray[1];
+                    for (SharedFile b : sharedFiles) {
+                        myNode.getSharedFileList().add(b);
                     }
                     response = MessageType.GOT_IT;
                     break;
 
 
-                // Find a book in the network
+                // Find a sharedFile in the network
                 case FIND_BOOK:
                     Pair<Long, String> searchBook = (Pair<Long, String>) messageArray[1];
-                    List<Book> results = myNode.findBookById(searchBook);
+                    List<SharedFile> results = myNode.findBookById(searchBook);
                     response = results;
                     break;
 
 
                 // My predecessor wants to check if I'm alive.
-                // Return my list of books that are assigned to me.
+                // Return my list of sharedFiles that are assigned to me.
                 case ARE_YOU_STILL_ALIVE:
 //                    System.out.println(myNode.getNodeName() + " - SERVER: I'm still alive.");
-                    response = myNode.getBookList();
+                    response = myNode.getSharedFileList();
                     break;
 
 
-                // My predecessor want me to return my shared books.
-                // Return my the books that I've shared with the network.
+                // My predecessor want me to return my shared sharedFiles.
+                // Return my the sharedFiles that I've shared with the network.
                 case GIVE_YOUR_SHARED_BOOKS:
                     response = myNode.getMySharedBooks();
                     break;
 
 
-                // Remove the shared book containing book's id and book's title
+                // Remove the shared sharedFile containing sharedFile's id and sharedFile's title
                 case REMOVE_SHARED_BOOK:
                     Pair<Long, String> sharedBook = (Pair<Long, String>) messageArray[1];
                     myNode.removeSharedBook(sharedBook);
@@ -250,10 +250,10 @@ public class Server implements Runnable{
                     break;
 
 
-                // check if book location is still available
+                // check if sharedFile location is still available
                 case IS_BOOK_AVAILABLE:
                     String loc = (String) messageArray[1];
-                    System.out.println(myNode.getNodeName() + " - SERVER: Check if book location is still available");
+                    System.out.println(myNode.getNodeName() + " - SERVER: Check if sharedFile location is still available");
                     File file = new File(loc);
                     if (file.exists()) {
                         response = MessageType.BOOK_IS_AVAILABLE;
@@ -263,7 +263,7 @@ public class Server implements Runnable{
                     break;
 
 
-                // a user wants to download book
+                // a user wants to download sharedFile
                 case DOWNLOAD_BOOK:
                 String bookLocation = (String) messageArray[1];
                 System.out.println(myNode.getNodeName() + " - SERVER - DOWNLOAD BOOK - Location received from socket: " + bookLocation);

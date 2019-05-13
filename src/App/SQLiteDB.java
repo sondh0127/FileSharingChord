@@ -1,6 +1,6 @@
 package App;
 
-import App.Components.Book;
+import App.Components.SharedFile;
 
 import java.net.InetSocketAddress;
 import java.sql.Connection;
@@ -40,7 +40,7 @@ public class SQLiteDB {
         }
     }
 
-    public void addNewBook(Book newBook) {
+    public void addNewBook(SharedFile newSharedFile) {
         try {
             Class.forName("org.sqlite.JDBC");
             Connection c = DriverManager.getConnection("jdbc:sqlite:" + myDb);
@@ -49,13 +49,13 @@ public class SQLiteDB {
 
             Statement stmt = c.createStatement();
             String sql = "INSERT INTO BOOK (USER_IP,PORT,BOOK_ID,TITLE,AUTHOR,ISBN,LOCATION,SHARED) VALUES ('" +
-                            newBook.getOwnerAddress().getAddress().getHostAddress() + "', '" +
-                            newBook.getOwnerAddress().getPort() + "', '" +
-                            newBook.getId() + "', '" +
-                            newBook.getTitle() + "', '" +
-                            newBook.getAuthor() + "', '" +
-                            newBook.getIsbn() + "', '" +
-                            newBook.getLocation() + "', '" +
+                            newSharedFile.getOwnerAddress().getAddress().getHostAddress() + "', '" +
+                            newSharedFile.getOwnerAddress().getPort() + "', '" +
+                            newSharedFile.getId() + "', '" +
+                            newSharedFile.getTitle() + "', '" +
+                            newSharedFile.getAuthor() + "', '" +
+                            newSharedFile.getIsbn() + "', '" +
+                            newSharedFile.getLocation() + "', '" +
                             "1');";
             int status = stmt.executeUpdate(sql);
             if (status > 0) {
@@ -71,8 +71,8 @@ public class SQLiteDB {
         }
     }
 
-    public List<Book> getAllMyBooks(InetSocketAddress myaddress) {
-        List<Book> bookList = new ArrayList();
+    public List<SharedFile> getAllMyBooks(InetSocketAddress myaddress) {
+        List<SharedFile> sharedFileList = new ArrayList();
 
         try {
             Class.forName("org.sqlite.JDBC");
@@ -99,22 +99,22 @@ public class SQLiteDB {
                     bookId = rs.getLong("BOOK_ID");
                 }
                 System.out.println("SQLDB bookId=" + bookId + " sharedValue=" + sharedValue + " ,isShared=" + isShared);
-                Book newBook = new Book(bookId, myaddress, title, author, isbn, location, isShared);
-                bookList.add(newBook);
+                SharedFile newSharedFile = new SharedFile(bookId, myaddress, title, author, isbn, location, isShared);
+                sharedFileList.add(newSharedFile);
             }
 
             stmt.close();
             c.commit();
             c.close();
             System.out.println("Successfully get all books");
-            return bookList;
+            return sharedFileList;
         } catch ( Exception e ) {
             e.printStackTrace();
-            return bookList;
+            return sharedFileList;
         }
     }
 
-    public void updateBookShareStatus(Book book) {
+    public void updateBookShareStatus(SharedFile sharedFile) {
         try {
             Class.forName("org.sqlite.JDBC");
             Connection c = DriverManager.getConnection("jdbc:sqlite:" + myDb);
@@ -122,20 +122,20 @@ public class SQLiteDB {
 //            System.out.println("Opened database successfully");
 
             int shared = 0;
-            if (book.getIsShared()) { shared = 1; }
+            if (sharedFile.getIsShared()) { shared = 1; }
             Statement stmt = c.createStatement();
             String sql = "UPDATE BOOK SET SHARED='" + shared +
-                            "', BOOK_ID='" + book.getId() +
-                            "' WHERE USER_IP='" + book.getOwnerAddress().getAddress().getHostAddress() +
-                            "' AND PORT='" + book.getOwnerAddress().getPort() +
-                            "' AND LOCATION='" + book.getLocation() + "';";
+                            "', BOOK_ID='" + sharedFile.getId() +
+                            "' WHERE USER_IP='" + sharedFile.getOwnerAddress().getAddress().getHostAddress() +
+                            "' AND PORT='" + sharedFile.getOwnerAddress().getPort() +
+                            "' AND LOCATION='" + sharedFile.getLocation() + "';";
             int status = stmt.executeUpdate(sql);
 
             stmt.close();
             c.commit();
             c.close();
             System.out.println(sql);
-            System.out.println("Updated book's share status successfully (" + status + "): " + book.getId() + ", " + book.getTitle() + ", " + book.getLocation());
+            System.out.println("Updated sharedFile's share status successfully (" + status + "): " + sharedFile.getId() + ", " + sharedFile.getTitle() + ", " + sharedFile.getLocation());
         } catch ( Exception e ) {
             e.printStackTrace();
         }
@@ -163,7 +163,7 @@ public class SQLiteDB {
         }
     }
 
-    public boolean updateBookLocation(Book book, Book newBook) {
+    public boolean updateBookLocation(SharedFile sharedFile, SharedFile newSharedFile) {
         try {
             Class.forName("org.sqlite.JDBC");
             Connection c = DriverManager.getConnection("jdbc:sqlite:" + myDb);
@@ -173,13 +173,13 @@ public class SQLiteDB {
             Statement stmt = c.createStatement();
 
             int shared = 0;
-            if (book.getIsShared()) { shared = 1; }
-            String sql = "UPDATE BOOK SET LOCATION='" + newBook.getLocation() +
-                            "', BOOK_ID='" + newBook.getId() +
+            if (sharedFile.getIsShared()) { shared = 1; }
+            String sql = "UPDATE BOOK SET LOCATION='" + newSharedFile.getLocation() +
+                            "', BOOK_ID='" + newSharedFile.getId() +
                             "', SHARED='" + shared +
-                            "' WHERE USER_IP='" + book.getOwnerAddress().getAddress().getHostAddress() +
-                            "' AND PORT='" + book.getOwnerAddress().getPort() +
-                            "' AND LOCATION='" + book.getLocation() + "';";
+                            "' WHERE USER_IP='" + sharedFile.getOwnerAddress().getAddress().getHostAddress() +
+                            "' AND PORT='" + sharedFile.getOwnerAddress().getPort() +
+                            "' AND LOCATION='" + sharedFile.getLocation() + "';";
             int status = stmt.executeUpdate(sql);
 
             stmt.close();
@@ -187,10 +187,10 @@ public class SQLiteDB {
             c.close();
 
             if (status > 0) {
-                System.out.println("Updated book's location successfully");
+                System.out.println("Updated sharedFile's location successfully");
                 return true;
             } else {
-                System.out.println("Unsuccessful Updated book's location");
+                System.out.println("Unsuccessful Updated sharedFile's location");
                 return false;
             }
         } catch ( Exception e ) {
@@ -201,7 +201,7 @@ public class SQLiteDB {
 
     public boolean checkIfBookExists(InetSocketAddress address, String location) {
         try {
-            System.out.println("Checking if Book exists in the DB: " + address.getAddress().getHostAddress() + ":" + address.getPort() + ", " + location);
+            System.out.println("Checking if SharedFile exists in the DB: " + address.getAddress().getHostAddress() + ":" + address.getPort() + ", " + location);
             Class.forName("org.sqlite.JDBC");
             Connection c = DriverManager.getConnection("jdbc:sqlite:" + myDb);
             c.setAutoCommit(false);
@@ -221,10 +221,10 @@ public class SQLiteDB {
 
 //            System.out.println(status);
             if (status) {
-                System.out.println("Book exists");
+                System.out.println("SharedFile exists");
                 return true;
             } else {
-                System.out.println("Book doesn't exist");
+                System.out.println("SharedFile doesn't exist");
                 return false;
             }
         } catch ( Exception e ) {

@@ -1,6 +1,6 @@
 package test;
 
-import App.Components.Book;
+import App.Components.SharedFile;
 import App.Components.Node;
 import App.Controller;
 
@@ -26,23 +26,23 @@ public class TestSharingBooks {
 
         // First Node share a book
         System.out.println("\n\n-----------------------------------------------------");
-        firstNode.shareABook("firstBook", "firstAuthor", "", "/User/Book/firstbook.pdf");
+        firstNode.shareABook("firstBook", "firstAuthor", "", "/User/SharedFile/firstbook.pdf");
         System.out.println("-----------------------------------------------------");
-        firstNode.shareABook("secondBook", "firstAuthor", "", "/User/Book/secondbook.pdf");
+        firstNode.shareABook("secondBook", "firstAuthor", "", "/User/SharedFile/secondbook.pdf");
         System.out.println("-----------------------------------------------------");
-        firstNode.shareABook("thirdBook", "firstAuthor", "", "/User/Book/thirdbook.pdf");
+        firstNode.shareABook("thirdBook", "firstAuthor", "", "/User/SharedFile/thirdbook.pdf");
         System.out.println("-----------------------------------------------------");
 
         firstNode.getFingerTable().printFingerTable();
         System.out.println("N0's SUC is " + firstNode.getSuccessor().getNodeName() + ", PRE is " + firstNode.getPredecessor().getNodeName());
-        for (Book b : firstNode.getBookList()) {
-            System.out.println("N0 - Book " + b.getId() + ": " + b.getTitle() + " - " + b.getAuthor() + " - " + b.getLocation());
+        for (SharedFile b : firstNode.getSharedFileList()) {
+            System.out.println("N0 - SharedFile " + b.getId() + ": " + b.getTitle() + " - " + b.getAuthor() + " - " + b.getLocation());
         }
 
         secondNode.getFingerTable().printFingerTable();
         System.out.println("N3's SUC is " + secondNode.getSuccessor().getNodeName() + ", PRE is " + secondNode.getPredecessor().getNodeName());
-        for (Book b : secondNode.getBookList()) {
-            System.out.println("N3 - Book " + b.getId() + ": " + b.getTitle() + " - " + b.getAuthor() + " - " + b.getLocation());
+        for (SharedFile b : secondNode.getSharedFileList()) {
+            System.out.println("N3 - SharedFile " + b.getId() + ": " + b.getTitle() + " - " + b.getAuthor() + " - " + b.getLocation());
         }
     }
 }

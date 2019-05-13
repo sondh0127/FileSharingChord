@@ -21,8 +21,8 @@ public class Node implements Serializable {
     private Node sucSuccessor = null;
     private FingerTable fingerTable = null;
 
-    private List<Book> bookList = null;
-    private List<Book> mySucBookList = null;
+    private List<SharedFile> sharedFileList = null;
+    private List<SharedFile> mySucSharedFileList = null;
     private List<Pair<Long, String>> mySharedBooks = null;
     private List<Pair<Long, String>> mySucSharedBooks = null;
 
@@ -46,8 +46,8 @@ public class Node implements Serializable {
             fingerTable = new FingerTable(this);
 
             // Initialize list of books
-            bookList = new ArrayList();
-            mySucBookList = new ArrayList();
+            sharedFileList = new ArrayList();
+            mySucSharedFileList = new ArrayList();
             mySharedBooks = new ArrayList();
             mySucSharedBooks = new ArrayList();
 
@@ -72,8 +72,8 @@ public class Node implements Serializable {
             fingerTable = new FingerTable(this);
 
             // Initialize list of books
-            bookList = new ArrayList();
-            mySucBookList = new ArrayList();
+            sharedFileList = new ArrayList();
+            mySucSharedFileList = new ArrayList();
             mySharedBooks = new ArrayList();
             mySucSharedBooks = new ArrayList();
 
@@ -181,9 +181,9 @@ public class Node implements Serializable {
 
             // Transferring books to me
             // Contact my successor to transfer some books to me
-            List<Book> myBookList = transferBooksToMe();
-            this.setBookList(myBookList);
-            System.out.println("My Book list: " + myBookList.size());
+            List<SharedFile> mySharedFileList = transferBooksToMe();
+            this.setSharedFileList(mySharedFileList);
+            System.out.println("My SharedFile list: " + mySharedFileList.size());
 
             // Start the threads for this node
             startThreads();
@@ -627,9 +627,9 @@ public class Node implements Serializable {
      * @param author
      * @param isbn
      * @param location
-     * @return Book that is successfully shared. Otherwise, null
+     * @return SharedFile that is successfully shared. Otherwise, null
      */
-    public Book shareABook(String title, String author, String isbn, String location) {
+    public SharedFile shareABook(String title, String author, String isbn, String location) {
         try {
 
             // Remove all non-alphanumeric characters
@@ -643,13 +643,13 @@ public class Node implements Serializable {
                 id = Utils.hashFunction(bookString);
             }
             System.out.println(nodeName + " - SHARE.NEW.BOOK - new book: " + title + " (" + location + ") : id=" + id);
-            Book newBook = new Book(id, this.address, title, author, isbn, location, true);
+            SharedFile newSharedFile = new SharedFile(id, this.address, title, author, isbn, location, true);
 
-            if (newBook.getId() == this.getNodeId()) {
+            if (newSharedFile.getId() == this.getNodeId()) {
                 // This book is assigned to me
                 System.out.println(nodeName + " - SHARE.NEW.BOOK - This book belongs to me: book id=" + id);
-                this.bookList.add(newBook);
-                return newBook;
+                this.sharedFileList.add(newSharedFile);
+                return newSharedFile;
             } else {
                 // Find the node responsible for this book
                 System.out.println(nodeName + " - SHARE.NEW.BOOK - find book's successor: book id=" + id);
@@ -659,10 +659,10 @@ public class Node implements Serializable {
                 // send book to the appropriate node responsible for it
                 Object[] objArray = new Object[2];
                 objArray[0] = MessageType.THIS_BOOK_BELONGS_TO_YOU;
-                objArray[1] = newBook;
+                objArray[1] = newSharedFile;
                 MessageType response = (MessageType) Utils.sendMessage(contact, objArray);
                 if (response == MessageType.GOT_IT) {
-                    return newBook;
+                    return newSharedFile;
                 } else {
                     return null;
                 }
@@ -684,12 +684,12 @@ public class Node implements Serializable {
         try {
             // Check my nodeID
             if (this.getPredecessor().getNodeId() < id && id <= this.getNodeId()) {
-                System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: Book belongs to me");
+                System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: SharedFile belongs to me");
                 return this.address;
             // Check my finger table
             } else {
                 FingerTable fingerTable = this.getFingerTable();
-                int iThFinger = fingerTable.findIthFingerOf(id); // Find the finger that stores information of the Book ID
+                int iThFinger = fingerTable.findIthFingerOf(id); // Find the finger that stores information of the SharedFile ID
                 if (iThFinger == 0) {
                     System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: ID " + id + " is too large");
                     return null;
@@ -703,8 +703,8 @@ public class Node implements Serializable {
                         // I'm book's successor
                         return this.getAddress();
                     } else if (Utils.isIdBetweenUpperEq(id, contact.getNodeId(), this.getNodeId())) {
-                        // Book id is in interval (contact, me], so I should hold that book if it exists. Otherwise, it doesn't exist
-                        System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: Book Id belongs to me");
+                        // SharedFile id is in interval (contact, me], so I should hold that book if it exists. Otherwise, it doesn't exist
+                        System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: SharedFile Id belongs to me");
                         return this.address;
                     } else {
                         System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: Contacting node #" + contact.getNodeId() + " (" + contact.getAddress().getAddress().getHostAddress() + ":" + contact.getAddress().getPort() + ")...");
@@ -736,13 +736,13 @@ public class Node implements Serializable {
             if (id == this.getNodeId()) {
                 System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: ID belongs to me");
                 // Check if id belongs to some book, which has different title, assigned to me
-                for (Book b : bookList) {
+                for (SharedFile b : sharedFileList) {
                     if (b.getId() == id) {
                         if (b.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(title)) {
-                            System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: Book ID belongs to the same book " + b.getTitle());
+                            System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: SharedFile ID belongs to the same book " + b.getTitle());
                             return MessageType.NOT_EXIST;
                         } else {
-                            System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: Book ID currently belongs to a book " + b.getTitle());
+                            System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: SharedFile ID currently belongs to a book " + b.getTitle());
                             return MessageType.ALREADY_EXIST;
                         }
                     }
@@ -750,7 +750,7 @@ public class Node implements Serializable {
             // Check my finger table
             } else {
                 FingerTable fingerTable = this.getFingerTable();
-                int iThFinger = fingerTable.findIthFingerOf(id); // Find the finger that stores information of Book node ID
+                int iThFinger = fingerTable.findIthFingerOf(id); // Find the finger that stores information of SharedFile node ID
                 if (iThFinger == 0) {
                     System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: ID " + id + " is too large");
                     response = MessageType.ALREADY_EXIST;
@@ -762,20 +762,20 @@ public class Node implements Serializable {
                     Node contact = fingerTable.getEntryNode(iThFinger);
                     if ( (contact.getNodeId() == this.getNodeId()) || (contact.getNodeId() < id && id <= this.getNodeId()) ) {
                         // Check if id belongs to some book, which has different title, assigned to me
-                        for (Book b : bookList) {
+                        for (SharedFile b : sharedFileList) {
                             if (b.getId() == id) {
                                 if (b.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(title)) {
                                     System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: BookID belongs to the same book " + b.getTitle());
                                     return MessageType.NOT_EXIST;
                                 } else {
-                                    System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: Book ID currently belongs to a book " + b.getTitle());
+                                    System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: SharedFile ID currently belongs to a book " + b.getTitle());
                                     return MessageType.ALREADY_EXIST;
                                 }
                             }
                         }
                     // If id is in interval (contact, me] and contact is my predecessor. I should hold this book
                     } else if (Utils.isIdBetweenUpperEq(id, contact.getNodeId(), this.getNodeId()) && this.getPredecessor().getNodeId() == contact.getNodeId()) {
-                        System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: Book Id should have belonged to me, no need to ask contact");
+                        System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: SharedFile Id should have belonged to me, no need to ask contact");
                     } else {
                         System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: Contacting node #" + contact.getNodeId() + " (" + contact.getAddress().getAddress().getHostAddress() + ":" + contact.getAddress().getPort() + ")...");
                         Object[] objArray = new Object[2];
@@ -799,13 +799,13 @@ public class Node implements Serializable {
      * Tell my successor to give me the list of books, which are assigned to him.
      * @return list of books that are assigned to my successor
      */
-    public List<Book> transferBooksToMe() {
+    public List<SharedFile> transferBooksToMe() {
         try {
             System.out.println(this.getNodeName() + " - TRANSFER.BOOKS.TO.ME: " + this.nodeId);
             Object[] objArray = new Object[2];
             objArray[0] = MessageType.TRANSFER_YOUR_BOOKS_TO_ME;
             objArray[1] = this.nodeId;
-            return (List<Book>) Utils.sendMessage(this.getSuccessor().getAddress(), objArray);
+            return (List<SharedFile>) Utils.sendMessage(this.getSuccessor().getAddress(), objArray);
         } catch (Exception e) {
             e.printStackTrace();
             return new ArrayList();
@@ -818,18 +818,18 @@ public class Node implements Serializable {
      * @param searchTerm
      * @return search results
      */
-    public List<Book> searchBook(String searchTerm) {
-        List<Book> returnBooks = new ArrayList();
+    public List<SharedFile> searchBook(String searchTerm) {
+        List<SharedFile> returnSharedFiles = new ArrayList();
         try {
             String searchString = searchTerm.replaceAll("[^A-Za-z0-9]", "").toLowerCase();
             long bookId = Utils.hashFunction(searchString);
             // Locate book id in the network
-            List<Book> results = findBookById(new Pair(bookId, searchString));
-            returnBooks.addAll(results);
-            return returnBooks;
+            List<SharedFile> results = findBookById(new Pair(bookId, searchString));
+            returnSharedFiles.addAll(results);
+            return returnSharedFiles;
         } catch (Exception e) {
             e.printStackTrace();
-            return returnBooks;
+            return returnSharedFiles;
         }
     }
 
@@ -839,8 +839,8 @@ public class Node implements Serializable {
      * @param searchBook
      * @return list of books
      */
-    public List<Book> findBookById(Pair<Long, String> searchBook) {
-        List<Book> returnBooks = new ArrayList();
+    public List<SharedFile> findBookById(Pair<Long, String> searchBook) {
+        List<SharedFile> returnSharedFiles = new ArrayList();
         try {
             long bookId = searchBook.getKey();
             String searchString = searchBook.getValue();
@@ -849,15 +849,15 @@ public class Node implements Serializable {
             // Find if I hold this book
             if (Utils.isIdBetweenUpperEq(bookId, this.getPredecessor().getNodeId(), this.getNodeId())) {
                 System.out.println("I'm holding this book: " + bookId + ", " + searchString);
-                for (Book book : this.getBookList()) {
-                    if (book.getId() == bookId && book.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(searchString)) {
-                        returnBooks.add(book);
+                for (SharedFile sharedFile : this.getSharedFileList()) {
+                    if (sharedFile.getId() == bookId && sharedFile.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(searchString)) {
+                        returnSharedFiles.add(sharedFile);
                     }
                 }
             // Check finger table to find the node who holds this book
             } else {
                 FingerTable fingerTable = this.getFingerTable();
-                int iThFinger = fingerTable.findIthFingerOf(bookId); // Find the finger that stores information of the Book ID
+                int iThFinger = fingerTable.findIthFingerOf(bookId); // Find the finger that stores information of the SharedFile ID
                 if (iThFinger != 0) {
                     System.out.println(this.getNodeName() + " - FIND.BOOK.BY.ID: Found book in the finger #" + iThFinger);
                     fingerTable.printFingerTable();
@@ -866,9 +866,9 @@ public class Node implements Serializable {
                     // If I'm responsible for this book id
                     if (contact.getNodeId() == this.getNodeId()) {
                         System.out.println("I'm holding this book: " + bookId + ", " + searchString);
-                        for (Book book : this.getBookList()) {
-                            if (book.getId() == bookId && book.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(searchString)) {
-                                returnBooks.add(book);
+                        for (SharedFile sharedFile : this.getSharedFileList()) {
+                            if (sharedFile.getId() == bookId && sharedFile.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(searchString)) {
+                                returnSharedFiles.add(sharedFile);
                             }
                         }
                     } else {
@@ -877,15 +877,15 @@ public class Node implements Serializable {
                         Object[] objArray = new Object[2];
                         objArray[0] = MessageType.FIND_BOOK;
                         objArray[1] = searchBook;
-                        List<Book> results = (List<Book>) Utils.sendMessage(contact.getAddress(), objArray);
-                        returnBooks.addAll(results);
+                        List<SharedFile> results = (List<SharedFile>) Utils.sendMessage(contact.getAddress(), objArray);
+                        returnSharedFiles.addAll(results);
                     }
                 }
             }
-            return returnBooks;
+            return returnSharedFiles;
         } catch (Exception e) {
             e.printStackTrace();
-            return returnBooks;
+            return returnSharedFiles;
         }
     }
 
@@ -901,17 +901,17 @@ public class Node implements Serializable {
             // Find book's successor
             // This book is assigned to me
             if ( bookId> this.getPredecessor().getNodeId() && bookId <= this.getNodeId()) {
-                for (Book b : this.getBookList()) {
+                for (SharedFile b : this.getSharedFileList()) {
                     String titleAddress = b.getTitle() + b.getOwnerAddress().getAddress().getHostAddress() + ":" + b.getOwnerAddress().getPort();
                     if (b.getId() == bookId && titleAddress.equals(bookTitleAddress)) {
-                        this.getBookList().remove(b);
+                        this.getSharedFileList().remove(b);
                     }
                 }
             // Check finger table to find the node who holds this book
             }  else {
                 // Contact book's successor to remove book
                 FingerTable fingerTable = this.getFingerTable();
-                int iThFinger = fingerTable.findIthFingerOf(bookId); // Find the finger that stores information of the Book ID
+                int iThFinger = fingerTable.findIthFingerOf(bookId); // Find the finger that stores information of the SharedFile ID
                 if (iThFinger != 0) {
                     System.out.println(this.getNodeName() + " - FIND.BOOK.BY.ID: Found book in the finger #" + iThFinger);
                     fingerTable.printFingerTable();
@@ -919,17 +919,17 @@ public class Node implements Serializable {
                     Node contact = fingerTable.getEntryNode(iThFinger);
                     // If I'm responsible for this book id
                     if (contact.getNodeId() == this.getNodeId()) {
-                        List<Book> newBookList = new ArrayList();
-                        for (Book b : this.getBookList()) {
+                        List<SharedFile> newSharedFileList = new ArrayList();
+                        for (SharedFile b : this.getSharedFileList()) {
                             String titleAddress = b.getTitle() + b.getOwnerAddress().getAddress().getHostAddress() + ":" + b.getOwnerAddress().getPort();
                             // Remove this book from the list
                             if (b.getId() == bookId && titleAddress.equals(bookTitleAddress)) {
-//                                this.getBookList().remove(b);
+//                                this.getSharedFileList().remove(b);
                             } else {
-                                newBookList.add(b);
+                                newSharedFileList.add(b);
                             }
                         }
-                        setBookList(newBookList);
+                        setSharedFileList(newSharedFileList);
                     } else {
                         // Ask i-th entry node to check book id
                         System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: Contacting node #" + contact.getNodeId() + " (" + contact.getAddress().getAddress().getHostAddress() + ":" + contact.getAddress().getPort() + ")...");
@@ -1028,20 +1028,20 @@ public class Node implements Serializable {
         return listener;
     }
 
-    public List<Book> getBookList() {
-        return bookList;
+    public List<SharedFile> getSharedFileList() {
+        return sharedFileList;
     }
 
-    public void setBookList(List<Book> bookList) {
-        this.bookList = bookList;
+    public void setSharedFileList(List<SharedFile> sharedFileList) {
+        this.sharedFileList = sharedFileList;
     }
 
-    public List<Book> getMySucBookList() {
-        return mySucBookList;
+    public List<SharedFile> getMySucSharedFileList() {
+        return mySucSharedFileList;
     }
 
-    public void setMySucBookList(List<Book> mySucBookList) {
-        this.mySucBookList = mySucBookList;
+    public void setMySucSharedFileList(List<SharedFile> mySucSharedFileList) {
+        this.mySucSharedFileList = mySucSharedFileList;
     }
 
     public List<Pair<Long, String>> getMySharedBooks() {

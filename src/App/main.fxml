@@ -28,7 +28,7 @@
                             <children>
                                 <Button layoutX="444.0" layoutY="46.0" mnemonicParsing="false" onAction="#searchBook" prefHeight="27.0" prefWidth="78.0" text="Search" />
                                 <TextField fx:id="searchTextField" layoutX="154.0" layoutY="46.0" prefHeight="27.0" prefWidth="277.0" />
-                                <Text layoutX="166.0" layoutY="31.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Search a book by title, isbn, or author" />
+                                <Text layoutX="166.0" layoutY="31.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Search a sharedFile by title, isbn, or author" />
                                 <Text fx:id="searchAlertText" fill="#f80000" layoutX="154.0" layoutY="96.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="367.21875">
                                     <font>
                                         <Font size="15.0" />
@@ -69,7 +69,7 @@
                         </AnchorPane>
                     </content>
                 </Tab>
-                <Tab closable="false" onSelectionChanged="#mySharedBooksTabSelected" text="My shared books">
+                <Tab closable="false" onSelectionChanged="#mySharedBooksTabSelected" text="My shared sharedFiles">
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                             <children>

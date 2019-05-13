@@ -58,8 +58,8 @@ public class Stabilize implements Runnable, Serializable {
 
                         // Receive response suc's book list, which contains books assigned to my suc
                         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-                        List<Book> response = (List<Book>) objectInputStream.readObject();
-                        myNode.setMySucBookList(response);
+                        List<SharedFile> response = (List<SharedFile>) objectInputStream.readObject();
+                        myNode.setMySucSharedFileList(response);
 
                         objectInputStream.close();
                         objectOutputStream.close();
@@ -154,11 +154,11 @@ public class Stabilize implements Runnable, Serializable {
             myNode.getFingerTable().updateEntryNode(1, newSuc);
 
             // Remove books shared by my old successor and my old successor's holding them
-            List<Book> myOldSucBookList = new ArrayList();
-            for (Book b : myNode.getMySucBookList()) {
+            List<SharedFile> myOldSucSharedFileList = new ArrayList();
+            for (SharedFile b : myNode.getMySucSharedFileList()) {
                 // If this book is not shared by my old successor, move it to my new successor
                 if (!b.getOwnerAddress().getAddress().getHostAddress().equals(mySuc.getAddress().getAddress().getHostAddress()) && b.getOwnerAddress().getPort() != mySuc.getAddress().getPort()) {
-                    myOldSucBookList.add(b);
+                    myOldSucSharedFileList.add(b);
                 }
             }
 
@@ -172,10 +172,10 @@ public class Stabilize implements Runnable, Serializable {
             }
 
             if (newSuc.getNodeId() == myNode.getNodeId()) { // I'm the only user left in the network
-                List<Book> myBookList = myNode.getBookList();
-                for (Book b: myOldSucBookList) {
+                List<SharedFile> mySharedFileList = myNode.getSharedFileList();
+                for (SharedFile b: myOldSucSharedFileList) {
                     if (b.getOwnerAddress().getAddress().getHostAddress().equals(myNode.getAddress().getAddress().getHostAddress()) && b.getOwnerAddress().getPort() == myNode.getAddress().getPort()) {
-                        myBookList.add(b);
+                        mySharedFileList.add(b);
                     }
                 }
             } else {
@@ -183,7 +183,7 @@ public class Stabilize implements Runnable, Serializable {
                 System.out.println(myNode.getNodeName() + " - STABILIZE - My successor left the network! Transferring old successor's books to new successor");
                 Object[] objArray = new Object[2];
                 objArray[0] = MessageType.YOU_HAVE_NEW_BOOKS;
-                objArray[1] = myOldSucBookList;
+                objArray[1] = myOldSucSharedFileList;
                 MessageType response = (MessageType) Utils.sendMessage(myNode.getSuccessor().getAddress(), objArray);
                 if (response == MessageType.GOT_IT) {
                     System.out.println(myNode.getNodeName() + " - STABILIZE - Successfully transferred books to new successor");
