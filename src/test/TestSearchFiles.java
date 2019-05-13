@@ -28,11 +28,11 @@ public class TestSearchFiles {
 
         // First Node share a file
         System.out.println("\n\n-----------------------------------------------------");
-        firstNode.shareAFile("firstFile", "firstAuthor", "", "/User/SharedFile/firstfile.pdf");
+        firstNode.shareAFile("firstFile", "firstAuthor", "/User/SharedFile/firstfile.pdf");
         System.out.println("-----------------------------------------------------");
-        firstNode.shareAFile("secondFile", "firstAuthor", "", "/User/SharedFile/secondfile.pdf");
+        firstNode.shareAFile("secondFile", "firstAuthor", "/User/SharedFile/secondfile.pdf");
         System.out.println("-----------------------------------------------------");
-        firstNode.shareAFile("thirdFile", "firstAuthor", "", "/User/SharedFile/thirdfile.pdf");
+        firstNode.shareAFile("thirdFile", "firstAuthor", "/User/SharedFile/thirdfile.pdf");
         System.out.println("-----------------------------------------------------");
 
         //Third Node

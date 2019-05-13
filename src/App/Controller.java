@@ -29,10 +29,14 @@ import java.util.List;
 public class Controller {
 
     private static Node myNode = null;
+
     public static Node getMyNode() {
         return myNode;
     }
-    public static void setMyNode(Node n) {myNode = n; }
+
+    public static void setMyNode(Node n) {
+        myNode = n;
+    }
 
     public static void stopLoopThreads() {
         if (myNode != null) {
@@ -43,6 +47,7 @@ public class Controller {
 
     /**
      * Check if given address is available
+     *
      * @param address
      * @return true if given address is available, false otherwise.
      */
@@ -69,10 +74,10 @@ public class Controller {
 
             System.out.println("port #" + address.getPort() + " not available");
             return false;
-        } catch (SocketTimeoutException e ) {
+        } catch (SocketTimeoutException e) {
             System.out.println("port #" + address.getPort() + " available");
             return true;
-        } catch (ConnectException e ) {
+        } catch (ConnectException e) {
             System.out.println("port #" + address.getPort() + " available");
             return true;
         } catch (Exception e) {
@@ -117,6 +122,7 @@ public class Controller {
 
     @FXML
     private static SQLiteDB db;
+
     /**
      * Initialize stuff when main starts
      */
@@ -132,7 +138,7 @@ public class Controller {
                 File file = new File(sharedFile.getLocation());
                 if (file.exists()) {
                     // Share each sharedFile with the network
-                    SharedFile newSharedFile = getMyNode().shareAFile(sharedFile.getTitle(), sharedFile.getAuthor(), sharedFile.getIsbn(), sharedFile.getLocation());
+                    SharedFile newSharedFile = getMyNode().shareAFile(sharedFile.getTitle(), sharedFile.getAuthor(), sharedFile.getLocation());
                     if (newSharedFile != null) {
                         sharedFile.setIsShared(true);
                         db.updateFileShareStatus(newSharedFile);
@@ -268,11 +274,7 @@ public class Controller {
                 setGraphic(null);
             } else {
                 currentSharedFile = newSharedFile;
-                if (currentSharedFile.getIsbn().isEmpty()) {
-                    label.setText(currentSharedFile.getTitle() + " by " + currentSharedFile.getAuthor() + "\n Owner: " + currentSharedFile.getOwnerAddress().getAddress().getHostAddress() + ":" + currentSharedFile.getOwnerAddress().getPort());
-                } else {
-                    label.setText(currentSharedFile.getTitle() + " by " + currentSharedFile.getAuthor() + " (isbn:" + currentSharedFile.getIsbn() + ")" + "\n Owner: " + currentSharedFile.getOwnerAddress().getAddress().getHostAddress() + ":" + currentSharedFile.getOwnerAddress().getPort());
-                }
+                label.setText(currentSharedFile.getTitle() + " by " + currentSharedFile.getAuthor() + "\n Owner: " + currentSharedFile.getOwnerAddress().getAddress().getHostAddress() + ":" + currentSharedFile.getOwnerAddress().getPort());
                 checkBox.setSelected(true);
                 checkBox.setDisable(true);
                 checkBox.setVisible(false);
@@ -321,16 +323,12 @@ public class Controller {
     @FXML
     private TextField authorTextField;
 
-    @FXML
-    private TextField isbnTextField;
-
     private File selectedFile;
 
     public void shareAFileTabSelected(Event event) {
         alertText.setText("Enter SharedFile Information");
         titleTextField.setText("");
         authorTextField.setText("");
-        isbnTextField.setText("");
         chooseFileText.setText("");
     }
 
@@ -366,7 +364,7 @@ public class Controller {
                     alertText.setText("This SharedFile is already shared: " + selectedFile.toString());
                 } else {
                     // Share a new file with the network
-                    SharedFile newSharedFile = Controller.getMyNode().shareAFile(titleTextField.getText(), authorTextField.getText(), isbnTextField.getText(), selectedFile.toString());
+                    SharedFile newSharedFile = Controller.getMyNode().shareAFile(titleTextField.getText(), authorTextField.getText(), selectedFile.toString());
                     if (newSharedFile != null) {
 
                         // Add file to the database
@@ -379,7 +377,6 @@ public class Controller {
                         alertText.setText("New SharedFile '" + titleTextField.getText() + "' successfully shared");
                         titleTextField.setText("");
                         authorTextField.setText("");
-                        isbnTextField.setText("");
                         chooseFileText.setText("");
                     } else {
                         alertText.setText("Can't share file! Please try again!");
@@ -390,7 +387,6 @@ public class Controller {
             e.printStackTrace();
         }
     }
-
 
 
     /**
@@ -404,7 +400,6 @@ public class Controller {
         HBox hbox = new HBox();
         Label titleLabel = new Label("");
         Label authorLabel = new Label("");
-        Label isbnLabel = new Label("");
         Label locationLabel = new Label("");
         Label fileIDLabel = new Label("");
         Pane pane = new Pane();
@@ -420,7 +415,6 @@ public class Controller {
             super();
             titleAuthorBorderPane.setTop(titleLabel);
             titleAuthorBorderPane.setLeft(authorLabel);
-            titleAuthorBorderPane.setBottom(isbnLabel);
 
             borderPane.setTop(fileIDLabel);
             borderPane.setLeft(locationLabel);
@@ -441,7 +435,7 @@ public class Controller {
                     String newLoc = selectedFile.toString();
 
                     // share file with the network
-                    SharedFile newSharedFile = getMyNode().shareAFile(currentSharedFile.getTitle(), currentSharedFile.getAuthor(), currentSharedFile.getIsbn(), newLoc);
+                    SharedFile newSharedFile = getMyNode().shareAFile(currentSharedFile.getTitle(), currentSharedFile.getAuthor(), newLoc);
 
                     if (newSharedFile != null) {
                         //update new location with the database
@@ -473,9 +467,8 @@ public class Controller {
                 currentSharedFile = newSharedFile;
                 titleLabel.setText("SharedFile title: " + currentSharedFile.getTitle());
                 authorLabel.setText("Author: " + currentSharedFile.getAuthor());
-                isbnLabel.setText("ISBN: " + currentSharedFile.getIsbn());
                 locationLabel.setText("Location:" + currentSharedFile.getLocation());
-                fileIDLabel.setText("SharedFile ID= : " + currentSharedFile.getId() + ", Owner: " + currentSharedFile.getOwnerAddress().getAddress().getHostAddress() + ":"  + currentSharedFile.getOwnerAddress().getPort());
+                fileIDLabel.setText("SharedFile ID= : " + currentSharedFile.getId() + ", Owner: " + currentSharedFile.getOwnerAddress().getAddress().getHostAddress() + ":" + currentSharedFile.getOwnerAddress().getPort());
                 setGraphic(hbox);
 
                 // check if file exists

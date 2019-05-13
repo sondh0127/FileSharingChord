@@ -27,7 +27,6 @@ public class SQLiteDB {
                     "FILE_ID     LONG        DEFAULT -1," +
                     "TITLE       TEXT        NOT NULL, " +
                     "AUTHOR      TEXT        NOT NULL, " +
-                    "ISBN        TEXT, " +
                     "LOCATION    TEXT        NOT NULL," +
                     "SHARED      INTEGER     DEFAULT 0," +
                     "PRIMARY KEY (USER_IP, PORT, LOCATION)" +
@@ -48,13 +47,12 @@ public class SQLiteDB {
 //            System.out.println("Opened database successfully");
 
             Statement stmt = c.createStatement();
-            String sql = "INSERT INTO FILE (USER_IP,PORT,FILE_ID,TITLE,AUTHOR,ISBN,LOCATION,SHARED) VALUES ('" +
+            String sql = "INSERT INTO FILE (USER_IP,PORT,FILE_ID,TITLE,AUTHOR,LOCATION,SHARED) VALUES ('" +
                             newSharedFile.getOwnerAddress().getAddress().getHostAddress() + "', '" +
                             newSharedFile.getOwnerAddress().getPort() + "', '" +
                             newSharedFile.getId() + "', '" +
                             newSharedFile.getTitle() + "', '" +
                             newSharedFile.getAuthor() + "', '" +
-                            newSharedFile.getIsbn() + "', '" +
                             newSharedFile.getLocation() + "', '" +
                             "1');";
             int status = stmt.executeUpdate(sql);
@@ -88,7 +86,6 @@ public class SQLiteDB {
             while ( rs.next() ) {
                 String  title = rs.getString("TITLE");
                 String author  = rs.getString("AUTHOR");
-                String  isbn = rs.getString("ISBN");
                 String location = rs.getString("LOCATION");
                 int sharedValue = rs.getInt("SHARED");
 
@@ -99,7 +96,7 @@ public class SQLiteDB {
                     fileId = rs.getLong("FILE_ID");
                 }
                 System.out.println("SQLDB fileId=" + fileId + " sharedValue=" + sharedValue + " ,isShared=" + isShared);
-                SharedFile newSharedFile = new SharedFile(fileId, myaddress, title, author, isbn, location, isShared);
+                SharedFile newSharedFile = new SharedFile(fileId, myaddress, title, author, location, isShared);
                 sharedFileList.add(newSharedFile);
             }
 

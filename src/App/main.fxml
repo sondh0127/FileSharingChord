@@ -28,7 +28,7 @@
                             <children>
                                 <Button layoutX="444.0" layoutY="46.0" mnemonicParsing="false" onAction="#searchFile" prefHeight="27.0" prefWidth="78.0" text="Search" />
                                 <TextField fx:id="searchTextField" layoutX="154.0" layoutY="46.0" prefHeight="27.0" prefWidth="277.0" />
-                                <Text layoutX="166.0" layoutY="31.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Search a sharedFile by title, isbn, or author" />
+                                <Text layoutX="166.0" layoutY="31.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Search a file by title, or author" />
                                 <Text fx:id="searchAlertText" fill="#f80000" layoutX="154.0" layoutY="96.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="367.21875">
                                     <font>
                                         <Font size="15.0" />
@@ -44,11 +44,9 @@
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                             <children>
                                 <TextField fx:id="titleTextField" layoutX="331.0" layoutY="90.0" prefHeight="27.0" prefWidth="216.0" />
-                                <Text layoutX="178.0" layoutY="108.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Enter File's Title" />
+                                <Text layoutX="178.0" layoutY="108.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Enter file's Title" />
                                 <TextField fx:id="authorTextField" layoutX="331.0" layoutY="135.0" prefHeight="27.0" prefWidth="216.0" />
-                                <Text layoutX="177.0" layoutY="153.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Enter File's Author" />
-                                <Text layoutX="175.0" layoutY="189.0" lineSpacing="2.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Enter File's ISBN (Optional)" wrappingWidth="113.95703125" />
-                                <TextField fx:id="isbnTextField" layoutX="331.0" layoutY="176.0" prefHeight="27.0" prefWidth="215.0" />
+                                <Text layoutX="177.0" layoutY="153.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Enter file's Author" />
                                 <Button layoutX="325.0" layoutY="364.0" mnemonicParsing="false" onAction="#shareNewFile" prefHeight="40.0" prefWidth="75.0" text="Share">
                                     <font>
                                         <Font size="15.0" />
@@ -69,7 +67,7 @@
                         </AnchorPane>
                     </content>
                 </Tab>
-                <Tab closable="false" onSelectionChanged="#mySharedFilesTabSelected" text="My shared sharedFiles">
+                <Tab closable="false" onSelectionChanged="#mySharedFilesTabSelected" text="My shared files">
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                             <children>

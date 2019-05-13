@@ -625,11 +625,10 @@ public class Node implements Serializable {
      * Assign it to a node
      * @param title
      * @param author
-     * @param isbn
      * @param location
      * @return SharedFile that is successfully shared. Otherwise, null
      */
-    public SharedFile shareAFile(String title, String author, String isbn, String location) {
+    public SharedFile shareAFile(String title, String author, String location) {
         try {
 
             // Remove all non-alphanumeric characters
@@ -643,7 +642,7 @@ public class Node implements Serializable {
                 id = Utils.hashFunction(fileString);
             }
             System.out.println(nodeName + " - SHARE.NEW.FILE - new file: " + title + " (" + location + ") : id=" + id);
-            SharedFile newSharedFile = new SharedFile(id, this.address, title, author, isbn, location, true);
+            SharedFile newSharedFile = new SharedFile(id, this.address, title, author, location, true);
 
             if (newSharedFile.getId() == this.getNodeId()) {
                 // This file is assigned to me

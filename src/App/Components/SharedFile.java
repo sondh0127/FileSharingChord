@@ -9,17 +9,15 @@ public class SharedFile implements Serializable {
     private InetSocketAddress ownerAddress;
     private String title;
     private String author;
-    private String isbn;
     private String location;
     private Boolean isShared;
 
-    public SharedFile(long id, InetSocketAddress address, String title, String author, String isbn, String location, Boolean isShared) {
+    public SharedFile(long id, InetSocketAddress address, String title, String author, String location, Boolean isShared) {
         this.id = id;
         this.name = "B" + id;
         this.ownerAddress = address;
         this.title = title;
         this.author = author;
-        this.isbn = isbn;
         this.location = location;
         this.isShared = isShared;
     }
@@ -62,14 +60,6 @@ public class SharedFile implements Serializable {
 
     public void setAuthor(String author) {
         this.author = author;
-    }
-
-    public String getIsbn() {
-        return isbn;
-    }
-
-    public void setIsbn(String isbn) {
-        this.isbn = isbn;
     }
 
     public String getLocation() {
