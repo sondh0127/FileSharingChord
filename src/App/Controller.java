@@ -326,7 +326,7 @@ public class Controller {
     private File selectedFile;
 
     public void shareAFileTabSelected(Event event) {
-        alertText.setText("Enter SharedFile Information");
+        alertText.setText("Enter File Information");
         titleTextField.setText("");
         authorTextField.setText("");
         chooseFileText.setText("");
