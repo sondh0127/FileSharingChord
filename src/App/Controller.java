@@ -72,17 +72,17 @@ public class Controller {
             objectOutputStream.close();
             ignored.close();
 
-            System.out.println("port #" + address.getPort() + " not available");
+            System.out.println("port #" + address.getPort() + " available");
             return false;
         } catch (SocketTimeoutException e) {
-            System.out.println("port #" + address.getPort() + " available");
+            System.out.println("port #" + address.getPort() + " not available");
             return true;
         } catch (ConnectException e) {
-            System.out.println("port #" + address.getPort() + " available");
+            System.out.println("port #" + address.getPort() + " not available");
             return true;
         } catch (Exception e) {
 //            e.printStackTrace();
-            System.out.println("port #" + address.getPort() + " available");
+            System.out.println("port #" + address.getPort() + " not available");
             return true;
         }
     }
