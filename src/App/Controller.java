@@ -37,7 +37,7 @@ public class Controller {
     public static void stopLoopThreads() {
         if (myNode != null) {
             myNode.stopLoopThreads();
-            db.unshareAllBooks(myNode.getAddress());
+            db.unshareAllFiles(myNode.getAddress());
         }
     }
 
@@ -125,30 +125,30 @@ public class Controller {
             InetSocketAddress address = Controller.myNode.getAddress();
             addressLabel.setText("My address: " + address.getAddress().getHostAddress() + ":" + address.getPort() + " - Node Id: " + Controller.myNode.getNodeId());
 
-            // Load books from local database
+            // Load files from local database
             db = new SQLiteDB();
-            for (SharedFile sharedFile : db.getAllMyBooks(address)) {
+            for (SharedFile sharedFile : db.getAllMyFiles(address)) {
                 System.out.println("File from the db: " + sharedFile.getTitle() + ", " + sharedFile.getLocation());
                 File file = new File(sharedFile.getLocation());
                 if (file.exists()) {
                     // Share each sharedFile with the network
-                    SharedFile newSharedFile = getMyNode().shareABook(sharedFile.getTitle(), sharedFile.getAuthor(), sharedFile.getIsbn(), sharedFile.getLocation());
+                    SharedFile newSharedFile = getMyNode().shareAFile(sharedFile.getTitle(), sharedFile.getAuthor(), sharedFile.getIsbn(), sharedFile.getLocation());
                     if (newSharedFile != null) {
                         sharedFile.setIsShared(true);
-                        db.updateBookShareStatus(newSharedFile);
+                        db.updateFileShareStatus(newSharedFile);
 
                         // Add new sharedFile to my shared sharedFile list
                         Pair<Long, String> pair = new Pair(newSharedFile.getId(), newSharedFile.getTitle());
-                        Controller.getMyNode().getMySharedBooks().add(pair);
+                        Controller.getMyNode().getmySharedFiles().add(pair);
 
                         System.out.println("Successfully re-shared file " + newSharedFile.getId() + " " + newSharedFile.getTitle() + " " + newSharedFile.getLocation());
                     } else {
                         sharedFile.setIsShared(false);
-                        db.updateBookShareStatus(sharedFile);
+                        db.updateFileShareStatus(sharedFile);
                     }
                 } else {
                     sharedFile.setIsShared(false);
-                    db.updateBookShareStatus(sharedFile);
+                    db.updateFileShareStatus(sharedFile);
                 }
             }
 
@@ -162,8 +162,8 @@ public class Controller {
             System.out.println("\n\nMy successor: " + Controller.getMyNode().getSuccessor().getNodeName());
             System.out.println("My predecessor: " + Controller.getMyNode().getPredecessor().getNodeName());
             Controller.getMyNode().getFingerTable().printFingerTable();
-            System.out.println("My files: " + Controller.getMyNode().getMySharedBooks().size());
-            for (Pair p : Controller.getMyNode().getMySharedBooks()) {
+            System.out.println("My files: " + Controller.getMyNode().getmySharedFiles().size());
+            for (Pair p : Controller.getMyNode().getmySharedFiles()) {
                 System.out.println("My file: " + p.getKey() + ", " + p.getValue());
             }
 
@@ -178,7 +178,7 @@ public class Controller {
 
 
     /**
-     * Search a book tab
+     * Search a file tab
      **/
 
     @FXML
@@ -188,15 +188,15 @@ public class Controller {
     private Text searchAlertText;
 
     @FXML
-    private ListView<SharedFile> bookListView;
+    private ListView<SharedFile> fileListView;
 
-    public void searchABookTabSelected(Event event) {
+    public void searchAFileTabSelected(Event event) {
         searchAlertText.setText("");
         ObservableList<SharedFile> list = FXCollections.observableArrayList();
-        bookListView.setItems(list);
+        fileListView.setItems(list);
     }
 
-    class BookCell extends ListCell<SharedFile> {
+    class FileCell extends ListCell<SharedFile> {
         HBox hbox = new HBox();
         Label label = new Label("(empty)");
         Pane pane = new Pane();
@@ -207,7 +207,7 @@ public class Controller {
         ProgressBar progressBar = new ProgressBar(0);
         SharedFile currentSharedFile;
 
-        public BookCell() {
+        public FileCell() {
             super();
             downloadButton.setDisable(false);
             borderPane.setTop(downloadButton);
@@ -231,12 +231,12 @@ public class Controller {
                         System.out.println("directory selected: " + dir);
                         progressBar.setProgress(0);
 
-                        // Ask book owner if book is still available
+                        // Ask file owner if file is still available
                         Object[] objArray = new Object[2];
-                        objArray[0] = MessageType.IS_BOOK_AVAILABLE;
+                        objArray[0] = MessageType.IS_FILE_AVAILABLE;
                         objArray[1] = currentSharedFile.getLocation();
                         MessageType response = (MessageType) Utils.sendMessage(currentSharedFile.getOwnerAddress(), objArray);
-                        if (response == MessageType.BOOK_IS_AVAILABLE) {
+                        if (response == MessageType.FILE_IS_AVAILABLE) {
                             //creating connection to owner's socket
                             Socket socket = new Socket(currentSharedFile.getOwnerAddress().getAddress(), currentSharedFile.getOwnerAddress().getPort());
                             System.out.println("Connecting to file owner: " + currentSharedFile.getOwnerAddress().getAddress().getHostAddress() + ":" + currentSharedFile.getOwnerAddress().getPort());
@@ -282,21 +282,21 @@ public class Controller {
         }
     }
 
-    public void searchBook(ActionEvent event) {
+    public void searchFile(ActionEvent event) {
         try {
             searchAlertText.setText("");
             String searchTerm = searchTextField.getText();
             if (searchTerm.isEmpty()) {
                 searchAlertText.setText("No SharedFile found!");
             } else {
-                List<SharedFile> searchSharedFileResult = myNode.searchBook(searchTerm);
+                List<SharedFile> searchSharedFileResult = myNode.searchFile(searchTerm);
                 if (searchSharedFileResult.isEmpty()) {
                     searchAlertText.setText("No SharedFile found!");
                 } else {
                     ObservableList<SharedFile> list = FXCollections.observableArrayList();
                     list.addAll(searchSharedFileResult);
-                    bookListView.setItems(list);
-                    bookListView.setCellFactory(param -> new BookCell());
+                    fileListView.setItems(list);
+                    fileListView.setCellFactory(param -> new FileCell());
                 }
             }
         } catch (Exception e) {
@@ -306,7 +306,7 @@ public class Controller {
 
 
     /**
-     * Share a book tab
+     * Share a file tab
      **/
 
     @FXML
@@ -326,7 +326,7 @@ public class Controller {
 
     private File selectedFile;
 
-    public void shareABookTabSelected(Event event) {
+    public void shareAFileTabSelected(Event event) {
         alertText.setText("Enter SharedFile Information");
         titleTextField.setText("");
         authorTextField.setText("");
@@ -345,7 +345,7 @@ public class Controller {
         }
     }
 
-    public void shareNewBook(ActionEvent event) {
+    public void shareNewFile(ActionEvent event) {
 //        System.out.println("Save button pressed");
         alertText.setText("");
         try {
@@ -359,22 +359,22 @@ public class Controller {
                 alertText.setText("Selected file doesn't exist");
             } else {
 
-                // Check if book is already shared
-                boolean status = db.checkIfBookExists(Controller.getMyNode().getAddress(), selectedFile.toString());
+                // Check if file is already shared
+                boolean status = db.checkIfFileExists(Controller.getMyNode().getAddress(), selectedFile.toString());
 
                 if (status) {
                     alertText.setText("This SharedFile is already shared: " + selectedFile.toString());
                 } else {
-                    // Share a new book with the network
-                    SharedFile newSharedFile = Controller.getMyNode().shareABook(titleTextField.getText(), authorTextField.getText(), isbnTextField.getText(), selectedFile.toString());
+                    // Share a new file with the network
+                    SharedFile newSharedFile = Controller.getMyNode().shareAFile(titleTextField.getText(), authorTextField.getText(), isbnTextField.getText(), selectedFile.toString());
                     if (newSharedFile != null) {
 
-                        // Add book to the database
-                        db.addNewBook(newSharedFile);
+                        // Add file to the database
+                        db.addNewFile(newSharedFile);
 
-                        // Add new book to my shared book list
+                        // Add new file to my shared file list
                         Pair<Long, String> pair = new Pair(newSharedFile.getId(), newSharedFile.getTitle());
-                        getMyNode().getMySharedBooks().add(pair);
+                        getMyNode().getmySharedFiles().add(pair);
 
                         alertText.setText("New SharedFile '" + titleTextField.getText() + "' successfully shared");
                         titleTextField.setText("");
@@ -382,7 +382,7 @@ public class Controller {
                         isbnTextField.setText("");
                         chooseFileText.setText("");
                     } else {
-                        alertText.setText("Can't share book! Please try again!");
+                        alertText.setText("Can't share file! Please try again!");
                     }
                 }
             }
@@ -394,19 +394,19 @@ public class Controller {
 
 
     /**
-     * My shared books tab
+     * My shared files tab
      **/
 
     @FXML
-    private ListView<SharedFile> mySharedBooksListView;
+    private ListView<SharedFile> mySharedFilesListView;
 
-    class SharedBookCell extends ListCell<SharedFile> {
+    class SharedFileCell extends ListCell<SharedFile> {
         HBox hbox = new HBox();
         Label titleLabel = new Label("");
         Label authorLabel = new Label("");
         Label isbnLabel = new Label("");
         Label locationLabel = new Label("");
-        Label bookIDLabel = new Label("");
+        Label fileIDLabel = new Label("");
         Pane pane = new Pane();
         BorderPane titleAuthorBorderPane = new BorderPane();
         BorderPane borderPane = new BorderPane();
@@ -416,13 +416,13 @@ public class Controller {
 
         SharedFile currentSharedFile;
 
-        public SharedBookCell() {
+        public SharedFileCell() {
             super();
             titleAuthorBorderPane.setTop(titleLabel);
             titleAuthorBorderPane.setLeft(authorLabel);
             titleAuthorBorderPane.setBottom(isbnLabel);
 
-            borderPane.setTop(bookIDLabel);
+            borderPane.setTop(fileIDLabel);
             borderPane.setLeft(locationLabel);
             borderPane.setBottom(statusBorderPane);
 
@@ -440,22 +440,22 @@ public class Controller {
                 if (selectedFile != null) {
                     String newLoc = selectedFile.toString();
 
-                    // share book with the network
-                    SharedFile newSharedFile = getMyNode().shareABook(currentSharedFile.getTitle(), currentSharedFile.getAuthor(), currentSharedFile.getIsbn(), newLoc);
+                    // share file with the network
+                    SharedFile newSharedFile = getMyNode().shareAFile(currentSharedFile.getTitle(), currentSharedFile.getAuthor(), currentSharedFile.getIsbn(), newLoc);
 
                     if (newSharedFile != null) {
                         //update new location with the database
                         currentSharedFile.setIsShared(true);
-                        boolean status = db.updateBookLocation(currentSharedFile, newSharedFile);
+                        boolean status = db.updateFileLocation(currentSharedFile, newSharedFile);
 
                         if (status == true) {
 
-                            System.out.println("Update Location - Successfully shared the book " + newSharedFile.getId());
-                            // Add new book to my shared book list
+                            System.out.println("Update Location - Successfully shared the file " + newSharedFile.getId());
+                            // Add new file to my shared file list
                             Pair<Long, String> pair = new Pair(newSharedFile.getId(), newSharedFile.getTitle());
-                            getMyNode().getMySharedBooks().add(pair);
+                            getMyNode().getmySharedFiles().add(pair);
 
-                            refreshMySharedBooksTab();
+                            refreshmySharedFilesTab();
                         }
                     }
                 }
@@ -475,7 +475,7 @@ public class Controller {
                 authorLabel.setText("Author: " + currentSharedFile.getAuthor());
                 isbnLabel.setText("ISBN: " + currentSharedFile.getIsbn());
                 locationLabel.setText("Location:" + currentSharedFile.getLocation());
-                bookIDLabel.setText("SharedFile ID= : " + currentSharedFile.getId() + ", Owner: " + currentSharedFile.getOwnerAddress().getAddress().getHostAddress() + ":"  + currentSharedFile.getOwnerAddress().getPort());
+                fileIDLabel.setText("SharedFile ID= : " + currentSharedFile.getId() + ", Owner: " + currentSharedFile.getOwnerAddress().getAddress().getHostAddress() + ":"  + currentSharedFile.getOwnerAddress().getPort());
                 setGraphic(hbox);
 
                 // check if file exists
@@ -498,23 +498,23 @@ public class Controller {
         }
     }
 
-    public void mySharedBooksTabSelected(Event event) {
-        refreshMySharedBooksTab();
+    public void mySharedFilesTabSelected(Event event) {
+        refreshmySharedFilesTab();
     }
 
-    private void refreshMySharedBooksTab() {
+    private void refreshmySharedFilesTab() {
         try {
-            System.out.println("Refreshing My Shared Books tab");
-            // Load books in the local database
+            System.out.println("Refreshing My Shared Files tab");
+            // Load files in the local database
             ObservableList<SharedFile> list = FXCollections.observableArrayList();
 
-            // load books from the local database
-            List<SharedFile> sharedFileList = db.getAllMyBooks(getMyNode().getAddress());
+            // load files from the local database
+            List<SharedFile> sharedFileList = db.getAllMyFiles(getMyNode().getAddress());
             System.out.println(sharedFileList.size());
 
             list.addAll(sharedFileList);
-            mySharedBooksListView.setItems(list);
-            mySharedBooksListView.setCellFactory(param -> new SharedBookCell());
+            mySharedFilesListView.setItems(list);
+            mySharedFilesListView.setCellFactory(param -> new SharedFileCell());
 
         } catch (Exception e) {
             e.printStackTrace();

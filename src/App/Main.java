@@ -166,7 +166,7 @@ public class Main extends Application {
             // Stop ListenerSocket Thread
             Controller.stopLoopThreads();
 
-            // Clear registered books
+            // Clear registered files
 
             System.exit(0);
         } catch (Exception e) {

@@ -23,8 +23,8 @@ public class Node implements Serializable {
 
     private List<SharedFile> sharedFileList = null;
     private List<SharedFile> mySucSharedFileList = null;
-    private List<Pair<Long, String>> mySharedBooks = null;
-    private List<Pair<Long, String>> mySucSharedBooks = null;
+    private List<Pair<Long, String>> mySharedFiles = null;
+    private List<Pair<Long, String>> mySucSharedFiles = null;
 
     private String addressString = "";
     private long nodeId = -1;
@@ -45,11 +45,11 @@ public class Node implements Serializable {
             // Initialize a finger table
             fingerTable = new FingerTable(this);
 
-            // Initialize list of books
+            // Initialize list of files
             sharedFileList = new ArrayList();
             mySucSharedFileList = new ArrayList();
-            mySharedBooks = new ArrayList();
-            mySucSharedBooks = new ArrayList();
+            mySharedFiles = new ArrayList();
+            mySucSharedFiles = new ArrayList();
 
             // initialize threads
             listener = new Listener(this);
@@ -71,11 +71,11 @@ public class Node implements Serializable {
             // Initialize a finger table
             fingerTable = new FingerTable(this);
 
-            // Initialize list of books
+            // Initialize list of files
             sharedFileList = new ArrayList();
             mySucSharedFileList = new ArrayList();
-            mySharedBooks = new ArrayList();
-            mySucSharedBooks = new ArrayList();
+            mySharedFiles = new ArrayList();
+            mySucSharedFiles = new ArrayList();
 
             // initialize threads
             listener = new Listener(this);
@@ -179,9 +179,9 @@ public class Node implements Serializable {
             status = updateFingerTableOfOtherNodes();
             if (status == false) {return false;}
 
-            // Transferring books to me
-            // Contact my successor to transfer some books to me
-            List<SharedFile> mySharedFileList = transferBooksToMe();
+            // Transferring files to me
+            // Contact my successor to transfer some files to me
+            List<SharedFile> mySharedFileList = transferFilesToMe();
             this.setSharedFileList(mySharedFileList);
             System.out.println("My SharedFile list: " + mySharedFileList.size());
 
@@ -620,7 +620,7 @@ public class Node implements Serializable {
 
 
     /**
-     * Share a book with its information with the network including:
+     * Share a file with its information with the network including:
      * Assign it an id
      * Assign it to a node
      * @param title
@@ -629,36 +629,36 @@ public class Node implements Serializable {
      * @param location
      * @return SharedFile that is successfully shared. Otherwise, null
      */
-    public SharedFile shareABook(String title, String author, String isbn, String location) {
+    public SharedFile shareAFile(String title, String author, String isbn, String location) {
         try {
 
             // Remove all non-alphanumeric characters
-            String bookString = title.replaceAll("[^A-Za-z0-9]", "").toLowerCase();
-            System.out.println(nodeName + " - SHARE.NEW.BOOK - bookstring= " + bookString);
-            long id = Utils.hashFunction(bookString);
+            String fileString = title.replaceAll("[^A-Za-z0-9]", "").toLowerCase();
+            System.out.println(nodeName + " - SHARE.NEW.FILE - filestring= " + fileString);
+            long id = Utils.hashFunction(fileString);
 
-            while(checkIfBookIdExists(id, bookString) == MessageType.ALREADY_EXIST) {
+            while(checkIfFileIdExists(id, fileString) == MessageType.ALREADY_EXIST) {
                 System.out.println("ID " + id + "already exists, generating new ID...");
-                bookString += ".";
-                id = Utils.hashFunction(bookString);
+                fileString += ".";
+                id = Utils.hashFunction(fileString);
             }
-            System.out.println(nodeName + " - SHARE.NEW.BOOK - new book: " + title + " (" + location + ") : id=" + id);
+            System.out.println(nodeName + " - SHARE.NEW.FILE - new file: " + title + " (" + location + ") : id=" + id);
             SharedFile newSharedFile = new SharedFile(id, this.address, title, author, isbn, location, true);
 
             if (newSharedFile.getId() == this.getNodeId()) {
-                // This book is assigned to me
-                System.out.println(nodeName + " - SHARE.NEW.BOOK - This book belongs to me: book id=" + id);
+                // This file is assigned to me
+                System.out.println(nodeName + " - SHARE.NEW.FILE - This file belongs to me: file id=" + id);
                 this.sharedFileList.add(newSharedFile);
                 return newSharedFile;
             } else {
-                // Find the node responsible for this book
-                System.out.println(nodeName + " - SHARE.NEW.BOOK - find book's successor: book id=" + id);
-                InetSocketAddress contact = findBookSuccessor(id);
+                // Find the node responsible for this file
+                System.out.println(nodeName + " - SHARE.NEW.FILE - find file's successor: file id=" + id);
+                InetSocketAddress contact = findFileSuccessor(id);
                 if (contact == null) { return null; }
 
-                // send book to the appropriate node responsible for it
+                // send file to the appropriate node responsible for it
                 Object[] objArray = new Object[2];
-                objArray[0] = MessageType.THIS_BOOK_BELONGS_TO_YOU;
+                objArray[0] = MessageType.THIS_FILE_BELONGS_TO_YOU;
                 objArray[1] = newSharedFile;
                 MessageType response = (MessageType) Utils.sendMessage(contact, objArray);
                 if (response == MessageType.GOT_IT) {
@@ -676,40 +676,40 @@ public class Node implements Serializable {
 
 
     /**
-     * Find the successor of the book. In other words, find the node/user responsible for this book
+     * Find the successor of the file. In other words, find the node/user responsible for this file
      * @param id
-     * @return address of the node/user responsible for this book
+     * @return address of the node/user responsible for this file
      */
-    public InetSocketAddress findBookSuccessor(long id) {
+    public InetSocketAddress findFileSuccessor(long id) {
         try {
             // Check my nodeID
             if (this.getPredecessor().getNodeId() < id && id <= this.getNodeId()) {
-                System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: SharedFile belongs to me");
+                System.out.println(this.getNodeName() + " - FIND.FILE.SUCCESSOR: SharedFile belongs to me");
                 return this.address;
             // Check my finger table
             } else {
                 FingerTable fingerTable = this.getFingerTable();
                 int iThFinger = fingerTable.findIthFingerOf(id); // Find the finger that stores information of the SharedFile ID
                 if (iThFinger == 0) {
-                    System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: ID " + id + " is too large");
+                    System.out.println(this.getNodeName() + " - FIND.FILE.SUCCESSOR: ID " + id + " is too large");
                     return null;
                 } else {
-                    System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR:: Found BOOK ID in the finger # " + iThFinger);
+                    System.out.println(this.getNodeName() + " - FIND.FILE.SUCCESSOR:: Found FILE ID in the finger # " + iThFinger);
                     fingerTable.printFingerTable();
 
-                    // Ask i-th entry node to check book id
+                    // Ask i-th entry node to check file id
                     Node contact = fingerTable.getEntryNode(iThFinger);
                     if (contact.getNodeId() == this.getNodeId()) {
-                        // I'm book's successor
+                        // I'm file's successor
                         return this.getAddress();
                     } else if (Utils.isIdBetweenUpperEq(id, contact.getNodeId(), this.getNodeId())) {
-                        // SharedFile id is in interval (contact, me], so I should hold that book if it exists. Otherwise, it doesn't exist
-                        System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: SharedFile Id belongs to me");
+                        // SharedFile id is in interval (contact, me], so I should hold that file if it exists. Otherwise, it doesn't exist
+                        System.out.println(this.getNodeName() + " - FIND.FILE.SUCCESSOR: SharedFile Id belongs to me");
                         return this.address;
                     } else {
-                        System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: Contacting node #" + contact.getNodeId() + " (" + contact.getAddress().getAddress().getHostAddress() + ":" + contact.getAddress().getPort() + ")...");
+                        System.out.println(this.getNodeName() + " - FIND.FILE.SUCCESSOR: Contacting node #" + contact.getNodeId() + " (" + contact.getAddress().getAddress().getHostAddress() + ":" + contact.getAddress().getPort() + ")...");
                         Object[] objArray = new Object[2];
-                        objArray[0] = MessageType.FIND_BOOK_SUCCESSOR;
+                        objArray[0] = MessageType.FIND_FILE_SUCCESSOR;
                         objArray[1] = id;
                         return (InetSocketAddress) Utils.sendMessage(contact.getAddress(), objArray);
                     }
@@ -723,26 +723,26 @@ public class Node implements Serializable {
 
 
     /**
-     * Check if a given id already belongs to a different book, which has different title, shared by a user
+     * Check if a given id already belongs to a different file, which has different title, shared by a user
      * @param id
      * @param title
-     * @return True if it belongs to a book which has different title. Otherwise, False.
+     * @return True if it belongs to a file which has different title. Otherwise, False.
      */
-    public MessageType checkIfBookIdExists(long id, String title) {
+    public MessageType checkIfFileIdExists(long id, String title) {
         try {
             MessageType response = MessageType.NOT_EXIST;
-            System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: id=" + id + " , title="  + title);
+            System.out.println(this.getNodeName() + " - CHECK.IF.FILE.ID.EXISTS: id=" + id + " , title="  + title);
             // Check my nodeID
             if (id == this.getNodeId()) {
-                System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: ID belongs to me");
-                // Check if id belongs to some book, which has different title, assigned to me
+                System.out.println(this.getNodeName() + " - CHECK.IF.FILE.ID.EXISTS: ID belongs to me");
+                // Check if id belongs to some file, which has different title, assigned to me
                 for (SharedFile b : sharedFileList) {
                     if (b.getId() == id) {
                         if (b.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(title)) {
-                            System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: SharedFile ID belongs to the same book " + b.getTitle());
+                            System.out.println(this.getNodeName() + " - CHECK.IF.FILE.ID.EXISTS: SharedFile ID belongs to the same file " + b.getTitle());
                             return MessageType.NOT_EXIST;
                         } else {
-                            System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: SharedFile ID currently belongs to a book " + b.getTitle());
+                            System.out.println(this.getNodeName() + " - CHECK.IF.FILE.ID.EXISTS: SharedFile ID currently belongs to a file " + b.getTitle());
                             return MessageType.ALREADY_EXIST;
                         }
                     }
@@ -752,36 +752,36 @@ public class Node implements Serializable {
                 FingerTable fingerTable = this.getFingerTable();
                 int iThFinger = fingerTable.findIthFingerOf(id); // Find the finger that stores information of SharedFile node ID
                 if (iThFinger == 0) {
-                    System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: ID " + id + " is too large");
+                    System.out.println(this.getNodeName() + " - CHECK.IF.FILE.ID.EXISTS: ID " + id + " is too large");
                     response = MessageType.ALREADY_EXIST;
                 } else {
-                    System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: Found BOOK ID=" + id + " in the finger # " + iThFinger);
+                    System.out.println(this.getNodeName() + " - CHECK.IF.FILE.ID.EXISTS: Found FILE ID=" + id + " in the finger # " + iThFinger);
                     fingerTable.printFingerTable();
 
-                    // Ask i-th entry node to check book id
+                    // Ask i-th entry node to check file id
                     Node contact = fingerTable.getEntryNode(iThFinger);
                     if ( (contact.getNodeId() == this.getNodeId()) || (contact.getNodeId() < id && id <= this.getNodeId()) ) {
-                        // Check if id belongs to some book, which has different title, assigned to me
+                        // Check if id belongs to some file, which has different title, assigned to me
                         for (SharedFile b : sharedFileList) {
                             if (b.getId() == id) {
                                 if (b.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(title)) {
-                                    System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: BookID belongs to the same book " + b.getTitle());
+                                    System.out.println(this.getNodeName() + " - CHECK.IF.FILE.ID.EXISTS: FileID belongs to the same file " + b.getTitle());
                                     return MessageType.NOT_EXIST;
                                 } else {
-                                    System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: SharedFile ID currently belongs to a book " + b.getTitle());
+                                    System.out.println(this.getNodeName() + " - CHECK.IF.FILE.ID.EXISTS: SharedFile ID currently belongs to a file " + b.getTitle());
                                     return MessageType.ALREADY_EXIST;
                                 }
                             }
                         }
-                    // If id is in interval (contact, me] and contact is my predecessor. I should hold this book
+                    // If id is in interval (contact, me] and contact is my predecessor. I should hold this file
                     } else if (Utils.isIdBetweenUpperEq(id, contact.getNodeId(), this.getNodeId()) && this.getPredecessor().getNodeId() == contact.getNodeId()) {
-                        System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: SharedFile Id should have belonged to me, no need to ask contact");
+                        System.out.println(this.getNodeName() + " - CHECK.IF.FILE.ID.EXISTS: SharedFile Id should have belonged to me, no need to ask contact");
                     } else {
-                        System.out.println(this.getNodeName() + " - CHECK.IF.BOOK.ID.EXISTS: Contacting node #" + contact.getNodeId() + " (" + contact.getAddress().getAddress().getHostAddress() + ":" + contact.getAddress().getPort() + ")...");
+                        System.out.println(this.getNodeName() + " - CHECK.IF.FILE.ID.EXISTS: Contacting node #" + contact.getNodeId() + " (" + contact.getAddress().getAddress().getHostAddress() + ":" + contact.getAddress().getPort() + ")...");
                         Object[] objArray = new Object[2];
-                        objArray[0] = MessageType.DOES_BOOK_ID_EXIST;
-                        Pair<Long, String> bookPair = new Pair(id, title);
-                        objArray[1] = bookPair;
+                        objArray[0] = MessageType.DOES_FILE_ID_EXIST;
+                        Pair<Long, String> filePair = new Pair(id, title);
+                        objArray[1] = filePair;
                         response = (MessageType) Utils.sendMessage(contact.getAddress(), objArray);
                     }
                 }
@@ -796,14 +796,14 @@ public class Node implements Serializable {
 
 
     /**
-     * Tell my successor to give me the list of books, which are assigned to him.
-     * @return list of books that are assigned to my successor
+     * Tell my successor to give me the list of files, which are assigned to him.
+     * @return list of files that are assigned to my successor
      */
-    public List<SharedFile> transferBooksToMe() {
+    public List<SharedFile> transferFilesToMe() {
         try {
-            System.out.println(this.getNodeName() + " - TRANSFER.BOOKS.TO.ME: " + this.nodeId);
+            System.out.println(this.getNodeName() + " - TRANSFER.FILES.TO.ME: " + this.nodeId);
             Object[] objArray = new Object[2];
-            objArray[0] = MessageType.TRANSFER_YOUR_BOOKS_TO_ME;
+            objArray[0] = MessageType.TRANSFER_YOUR_FILES_TO_ME;
             objArray[1] = this.nodeId;
             return (List<SharedFile>) Utils.sendMessage(this.getSuccessor().getAddress(), objArray);
         } catch (Exception e) {
@@ -814,17 +814,17 @@ public class Node implements Serializable {
 
 
     /**
-     * Search a book in the network by its title
+     * Search a file in the network by its title
      * @param searchTerm
      * @return search results
      */
-    public List<SharedFile> searchBook(String searchTerm) {
+    public List<SharedFile> searchFile(String searchTerm) {
         List<SharedFile> returnSharedFiles = new ArrayList();
         try {
             String searchString = searchTerm.replaceAll("[^A-Za-z0-9]", "").toLowerCase();
-            long bookId = Utils.hashFunction(searchString);
-            // Locate book id in the network
-            List<SharedFile> results = findBookById(new Pair(bookId, searchString));
+            long fileId = Utils.hashFunction(searchString);
+            // Locate file id in the network
+            List<SharedFile> results = findFileById(new Pair(fileId, searchString));
             returnSharedFiles.addAll(results);
             return returnSharedFiles;
         } catch (Exception e) {
@@ -835,48 +835,48 @@ public class Node implements Serializable {
 
 
     /**
-     * Find a book in the network by looking for the node who holds this book
-     * @param searchBook
-     * @return list of books
+     * Find a file in the network by looking for the node who holds this file
+     * @param searchFile
+     * @return list of files
      */
-    public List<SharedFile> findBookById(Pair<Long, String> searchBook) {
+    public List<SharedFile> findFileById(Pair<Long, String> searchFile) {
         List<SharedFile> returnSharedFiles = new ArrayList();
         try {
-            long bookId = searchBook.getKey();
-            String searchString = searchBook.getValue();
-            System.out.println(this.getNodeName() + " - FIND.BOOK.BY.ID:" + bookId + ", term: " + searchString);
+            long fileId = searchFile.getKey();
+            String searchString = searchFile.getValue();
+            System.out.println(this.getNodeName() + " - FIND.FILE.BY.ID:" + fileId + ", term: " + searchString);
 
-            // Find if I hold this book
-            if (Utils.isIdBetweenUpperEq(bookId, this.getPredecessor().getNodeId(), this.getNodeId())) {
-                System.out.println("I'm holding this book: " + bookId + ", " + searchString);
+            // Find if I hold this file
+            if (Utils.isIdBetweenUpperEq(fileId, this.getPredecessor().getNodeId(), this.getNodeId())) {
+                System.out.println("I'm holding this file: " + fileId + ", " + searchString);
                 for (SharedFile sharedFile : this.getSharedFileList()) {
-                    if (sharedFile.getId() == bookId && sharedFile.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(searchString)) {
+                    if (sharedFile.getId() == fileId && sharedFile.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(searchString)) {
                         returnSharedFiles.add(sharedFile);
                     }
                 }
-            // Check finger table to find the node who holds this book
+            // Check finger table to find the node who holds this file
             } else {
                 FingerTable fingerTable = this.getFingerTable();
-                int iThFinger = fingerTable.findIthFingerOf(bookId); // Find the finger that stores information of the SharedFile ID
+                int iThFinger = fingerTable.findIthFingerOf(fileId); // Find the finger that stores information of the SharedFile ID
                 if (iThFinger != 0) {
-                    System.out.println(this.getNodeName() + " - FIND.BOOK.BY.ID: Found book in the finger #" + iThFinger);
+                    System.out.println(this.getNodeName() + " - FIND.FILE.BY.ID: Found file in the finger #" + iThFinger);
                     fingerTable.printFingerTable();
 
                     Node contact = fingerTable.getEntryNode(iThFinger);
-                    // If I'm responsible for this book id
+                    // If I'm responsible for this file id
                     if (contact.getNodeId() == this.getNodeId()) {
-                        System.out.println("I'm holding this book: " + bookId + ", " + searchString);
+                        System.out.println("I'm holding this file: " + fileId + ", " + searchString);
                         for (SharedFile sharedFile : this.getSharedFileList()) {
-                            if (sharedFile.getId() == bookId && sharedFile.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(searchString)) {
+                            if (sharedFile.getId() == fileId && sharedFile.getTitle().replaceAll("[^A-Za-z0-9]", "").toLowerCase().equals(searchString)) {
                                 returnSharedFiles.add(sharedFile);
                             }
                         }
                     } else {
-                        // Ask i-th entry node to check book id
-                        System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: Contacting node #" + contact.getNodeId() + " (" + contact.getAddress().getAddress().getHostAddress() + ":" + contact.getAddress().getPort() + ")...");
+                        // Ask i-th entry node to check file id
+                        System.out.println(this.getNodeName() + " - FIND.FILE.SUCCESSOR: Contacting node #" + contact.getNodeId() + " (" + contact.getAddress().getAddress().getHostAddress() + ":" + contact.getAddress().getPort() + ")...");
                         Object[] objArray = new Object[2];
-                        objArray[0] = MessageType.FIND_BOOK;
-                        objArray[1] = searchBook;
+                        objArray[0] = MessageType.FIND_FILE;
+                        objArray[1] = searchFile;
                         List<SharedFile> results = (List<SharedFile>) Utils.sendMessage(contact.getAddress(), objArray);
                         returnSharedFiles.addAll(results);
                     }
@@ -891,39 +891,39 @@ public class Node implements Serializable {
 
 
     /**
-     * Remove a shared book by telling the node who holds this book to remove it
-     * @param book
+     * Remove a shared file by telling the node who holds this file to remove it
+     * @param file
      */
-    public void removeSharedBook(Pair<Long, String> book) {
+    public void removeSharedFile(Pair<Long, String> file) {
         try {
-            long bookId = book.getKey();
-            String bookTitleAddress = book.getValue();
-            // Find book's successor
-            // This book is assigned to me
-            if ( bookId> this.getPredecessor().getNodeId() && bookId <= this.getNodeId()) {
+            long fileId = file.getKey();
+            String fileTitleAddress = file.getValue();
+            // Find file's successor
+            // This file is assigned to me
+            if ( fileId> this.getPredecessor().getNodeId() && fileId <= this.getNodeId()) {
                 for (SharedFile b : this.getSharedFileList()) {
                     String titleAddress = b.getTitle() + b.getOwnerAddress().getAddress().getHostAddress() + ":" + b.getOwnerAddress().getPort();
-                    if (b.getId() == bookId && titleAddress.equals(bookTitleAddress)) {
+                    if (b.getId() == fileId && titleAddress.equals(fileTitleAddress)) {
                         this.getSharedFileList().remove(b);
                     }
                 }
-            // Check finger table to find the node who holds this book
+            // Check finger table to find the node who holds this file
             }  else {
-                // Contact book's successor to remove book
+                // Contact file's successor to remove file
                 FingerTable fingerTable = this.getFingerTable();
-                int iThFinger = fingerTable.findIthFingerOf(bookId); // Find the finger that stores information of the SharedFile ID
+                int iThFinger = fingerTable.findIthFingerOf(fileId); // Find the finger that stores information of the SharedFile ID
                 if (iThFinger != 0) {
-                    System.out.println(this.getNodeName() + " - FIND.BOOK.BY.ID: Found book in the finger #" + iThFinger);
+                    System.out.println(this.getNodeName() + " - FIND.FILE.BY.ID: Found file in the finger #" + iThFinger);
                     fingerTable.printFingerTable();
 
                     Node contact = fingerTable.getEntryNode(iThFinger);
-                    // If I'm responsible for this book id
+                    // If I'm responsible for this file id
                     if (contact.getNodeId() == this.getNodeId()) {
                         List<SharedFile> newSharedFileList = new ArrayList();
                         for (SharedFile b : this.getSharedFileList()) {
                             String titleAddress = b.getTitle() + b.getOwnerAddress().getAddress().getHostAddress() + ":" + b.getOwnerAddress().getPort();
-                            // Remove this book from the list
-                            if (b.getId() == bookId && titleAddress.equals(bookTitleAddress)) {
+                            // Remove this file from the list
+                            if (b.getId() == fileId && titleAddress.equals(fileTitleAddress)) {
 //                                this.getSharedFileList().remove(b);
                             } else {
                                 newSharedFileList.add(b);
@@ -931,11 +931,11 @@ public class Node implements Serializable {
                         }
                         setSharedFileList(newSharedFileList);
                     } else {
-                        // Ask i-th entry node to check book id
-                        System.out.println(this.getNodeName() + " - FIND.BOOK.SUCCESSOR: Contacting node #" + contact.getNodeId() + " (" + contact.getAddress().getAddress().getHostAddress() + ":" + contact.getAddress().getPort() + ")...");
+                        // Ask i-th entry node to check file id
+                        System.out.println(this.getNodeName() + " - FIND.FILE.SUCCESSOR: Contacting node #" + contact.getNodeId() + " (" + contact.getAddress().getAddress().getHostAddress() + ":" + contact.getAddress().getPort() + ")...");
                         Object[] objArray = new Object[2];
-                        objArray[0] = MessageType.REMOVE_SHARED_BOOK;
-                        objArray[1] = book;
+                        objArray[0] = MessageType.REMOVE_SHARED_FILE;
+                        objArray[1] = file;
                         MessageType result = (MessageType) Utils.sendMessage(contact.getAddress(), objArray);
                     }
                 }
@@ -1044,19 +1044,19 @@ public class Node implements Serializable {
         this.mySucSharedFileList = mySucSharedFileList;
     }
 
-    public List<Pair<Long, String>> getMySharedBooks() {
-        return mySharedBooks;
+    public List<Pair<Long, String>> getmySharedFiles() {
+        return mySharedFiles;
     }
 
-    public void setMySharedBooks(List<Pair<Long, String>> mySharedBooks) {
-        this.mySharedBooks = mySharedBooks;
+    public void setmySharedFiles(List<Pair<Long, String>> mySharedFiles) {
+        this.mySharedFiles = mySharedFiles;
     }
 
-    public List<Pair<Long, String>> getMySucSharedBooks() {
-        return mySucSharedBooks;
+    public List<Pair<Long, String>> getMySucSharedFiles() {
+        return mySucSharedFiles;
     }
 
-    public void setMySucSharedBooks(List<Pair<Long, String>> mySucSharedBooks) {
-        this.mySucSharedBooks = mySucSharedBooks;
+    public void setMySucSharedFiles(List<Pair<Long, String>> mySucSharedFiles) {
+        this.mySucSharedFiles = mySucSharedFiles;
     }
 }

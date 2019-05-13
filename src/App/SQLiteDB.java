@@ -12,7 +12,7 @@ import java.util.List;
 
 public class SQLiteDB {
 
-    private static String myDb = "mySharedBooks.db";
+    private static String myDb = "mySharedFiles.db";
 
     public SQLiteDB() {
         try {
@@ -21,10 +21,10 @@ public class SQLiteDB {
 //            System.out.println("Opened database successfully");
 
             Statement stmt = c.createStatement();
-            String sql = "CREATE TABLE IF NOT EXISTS BOOK (" +
+            String sql = "CREATE TABLE IF NOT EXISTS FILE (" +
                     "USER_IP     TEXT        NOT NULL," +
                     "PORT        INT         NOT NULL," +
-                    "BOOK_ID     LONG        DEFAULT -1," +
+                    "FILE_ID     LONG        DEFAULT -1," +
                     "TITLE       TEXT        NOT NULL, " +
                     "AUTHOR      TEXT        NOT NULL, " +
                     "ISBN        TEXT, " +
@@ -40,7 +40,7 @@ public class SQLiteDB {
         }
     }
 
-    public void addNewBook(SharedFile newSharedFile) {
+    public void addNewFile(SharedFile newSharedFile) {
         try {
             Class.forName("org.sqlite.JDBC");
             Connection c = DriverManager.getConnection("jdbc:sqlite:" + myDb);
@@ -48,7 +48,7 @@ public class SQLiteDB {
 //            System.out.println("Opened database successfully");
 
             Statement stmt = c.createStatement();
-            String sql = "INSERT INTO BOOK (USER_IP,PORT,BOOK_ID,TITLE,AUTHOR,ISBN,LOCATION,SHARED) VALUES ('" +
+            String sql = "INSERT INTO FILE (USER_IP,PORT,FILE_ID,TITLE,AUTHOR,ISBN,LOCATION,SHARED) VALUES ('" +
                             newSharedFile.getOwnerAddress().getAddress().getHostAddress() + "', '" +
                             newSharedFile.getOwnerAddress().getPort() + "', '" +
                             newSharedFile.getId() + "', '" +
@@ -71,7 +71,7 @@ public class SQLiteDB {
         }
     }
 
-    public List<SharedFile> getAllMyBooks(InetSocketAddress myaddress) {
+    public List<SharedFile> getAllMyFiles(InetSocketAddress myaddress) {
         List<SharedFile> sharedFileList = new ArrayList();
 
         try {
@@ -81,7 +81,7 @@ public class SQLiteDB {
 //            System.out.println("Opened database successfully");
 
             Statement stmt = c.createStatement();
-            String sql = "SELECT * FROM BOOK WHERE USER_IP='" + myaddress.getAddress().getHostAddress() +
+            String sql = "SELECT * FROM FILE WHERE USER_IP='" + myaddress.getAddress().getHostAddress() +
                             "' AND PORT='" + myaddress.getPort() + "';";
             ResultSet rs = stmt.executeQuery( sql);
 
@@ -92,21 +92,21 @@ public class SQLiteDB {
                 String location = rs.getString("LOCATION");
                 int sharedValue = rs.getInt("SHARED");
 
-                long bookId = -1;
+                long fileId = -1;
                 Boolean isShared = false;
                 if (sharedValue > 0) {
                     isShared = true;
-                    bookId = rs.getLong("BOOK_ID");
+                    fileId = rs.getLong("FILE_ID");
                 }
-                System.out.println("SQLDB bookId=" + bookId + " sharedValue=" + sharedValue + " ,isShared=" + isShared);
-                SharedFile newSharedFile = new SharedFile(bookId, myaddress, title, author, isbn, location, isShared);
+                System.out.println("SQLDB fileId=" + fileId + " sharedValue=" + sharedValue + " ,isShared=" + isShared);
+                SharedFile newSharedFile = new SharedFile(fileId, myaddress, title, author, isbn, location, isShared);
                 sharedFileList.add(newSharedFile);
             }
 
             stmt.close();
             c.commit();
             c.close();
-            System.out.println("Successfully get all books");
+            System.out.println("Successfully get all files");
             return sharedFileList;
         } catch ( Exception e ) {
             e.printStackTrace();
@@ -114,7 +114,7 @@ public class SQLiteDB {
         }
     }
 
-    public void updateBookShareStatus(SharedFile sharedFile) {
+    public void updateFileShareStatus(SharedFile sharedFile) {
         try {
             Class.forName("org.sqlite.JDBC");
             Connection c = DriverManager.getConnection("jdbc:sqlite:" + myDb);
@@ -124,8 +124,8 @@ public class SQLiteDB {
             int shared = 0;
             if (sharedFile.getIsShared()) { shared = 1; }
             Statement stmt = c.createStatement();
-            String sql = "UPDATE BOOK SET SHARED='" + shared +
-                            "', BOOK_ID='" + sharedFile.getId() +
+            String sql = "UPDATE FILE SET SHARED='" + shared +
+                            "', FILE_ID='" + sharedFile.getId() +
                             "' WHERE USER_IP='" + sharedFile.getOwnerAddress().getAddress().getHostAddress() +
                             "' AND PORT='" + sharedFile.getOwnerAddress().getPort() +
                             "' AND LOCATION='" + sharedFile.getLocation() + "';";
@@ -141,7 +141,7 @@ public class SQLiteDB {
         }
     }
 
-    public void unshareAllBooks(InetSocketAddress address) {
+    public void unshareAllFiles(InetSocketAddress address) {
         try {
             Class.forName("org.sqlite.JDBC");
             Connection c = DriverManager.getConnection("jdbc:sqlite:" + myDb);
@@ -149,7 +149,7 @@ public class SQLiteDB {
 //            System.out.println("Opened database successfully");
 
             Statement stmt = c.createStatement();
-            String sql = "UPDATE BOOK SET SHARED='0' " +
+            String sql = "UPDATE FILE SET SHARED='0' " +
                         "WHERE USER_IP='" + address.getAddress().getHostAddress() +
                         "' AND PORT='" + address.getPort() +"';";
             stmt.executeUpdate(sql);
@@ -157,13 +157,13 @@ public class SQLiteDB {
             stmt.close();
             c.commit();
             c.close();
-            System.out.println("Unshared all books successfully");
+            System.out.println("Unshared all files successfully");
         } catch ( Exception e ) {
             e.printStackTrace();
         }
     }
 
-    public boolean updateBookLocation(SharedFile sharedFile, SharedFile newSharedFile) {
+    public boolean updateFileLocation(SharedFile sharedFile, SharedFile newSharedFile) {
         try {
             Class.forName("org.sqlite.JDBC");
             Connection c = DriverManager.getConnection("jdbc:sqlite:" + myDb);
@@ -174,8 +174,8 @@ public class SQLiteDB {
 
             int shared = 0;
             if (sharedFile.getIsShared()) { shared = 1; }
-            String sql = "UPDATE BOOK SET LOCATION='" + newSharedFile.getLocation() +
-                            "', BOOK_ID='" + newSharedFile.getId() +
+            String sql = "UPDATE FILE SET LOCATION='" + newSharedFile.getLocation() +
+                            "', FILE_ID='" + newSharedFile.getId() +
                             "', SHARED='" + shared +
                             "' WHERE USER_IP='" + sharedFile.getOwnerAddress().getAddress().getHostAddress() +
                             "' AND PORT='" + sharedFile.getOwnerAddress().getPort() +
@@ -199,7 +199,7 @@ public class SQLiteDB {
         }
     }
 
-    public boolean checkIfBookExists(InetSocketAddress address, String location) {
+    public boolean checkIfFileExists(InetSocketAddress address, String location) {
         try {
             System.out.println("Checking if SharedFile exists in the DB: " + address.getAddress().getHostAddress() + ":" + address.getPort() + ", " + location);
             Class.forName("org.sqlite.JDBC");
@@ -209,7 +209,7 @@ public class SQLiteDB {
 
             Statement stmt = c.createStatement();
 
-            String sql = "SELECT * FROM BOOK WHERE USER_IP='" + address.getAddress().getHostAddress() +
+            String sql = "SELECT * FROM FILE WHERE USER_IP='" + address.getAddress().getHostAddress() +
                     "' AND PORT='" + address.getPort() +
                     "' AND LOCATION='" + location + "';";
             ResultSet rs = stmt.executeQuery(sql);

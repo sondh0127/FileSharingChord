@@ -30,7 +30,7 @@ public class Download implements Runnable{
 
             // Send SharedFile's file location to the owner
             Object[] msgArray = new Object[2];
-            msgArray[0] = MessageType.DOWNLOAD_BOOK;
+            msgArray[0] = MessageType.DOWNLOAD_FILE;
             msgArray[1] = currentSharedFile.getLocation();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             out.writeObject(msgArray);

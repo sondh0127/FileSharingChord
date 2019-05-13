@@ -24,7 +24,7 @@ public class Server implements Runnable{
 
     public void run() {
         try {
-            // Receive book's file location from the socket
+            // Receive file's file location from the socket
 //            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 //            String message = (String) in.readObject();
 
@@ -41,7 +41,7 @@ public class Server implements Runnable{
 //                System.out.println(myNode.getNodeName() + "-SERVER: Response message: " + response + "\n");
 
                 // Send response to the client
-                if (messageArray[0] != MessageType.DOWNLOAD_BOOK) {
+                if (messageArray[0] != MessageType.DOWNLOAD_FILE) {
                     ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                     objectOutputStream.writeObject(response);
                     objectOutputStream.flush();
@@ -162,25 +162,25 @@ public class Server implements Runnable{
 
 
                 // Check if sharedFile id belongs to a sharedFile in the network
-                case DOES_BOOK_ID_EXIST:
-                    Pair<Long, String> bookPair = (Pair<Long, String>) messageArray[1];
+                case DOES_FILE_ID_EXIST:
+                    Pair<Long, String> filePair = (Pair<Long, String>) messageArray[1];
                     response = MessageType.NOT_EXIST;
-                    System.out.println(myNode.getNodeName() + " - SERVER: Checking if BOOK ID exists: " + bookPair.getKey() + ", title: "  + bookPair.getValue());
-                    response = myNode.checkIfBookIdExists(bookPair.getKey(), bookPair.getValue());
+                    System.out.println(myNode.getNodeName() + " - SERVER: Checking if FILE ID exists: " + filePair.getKey() + ", title: "  + filePair.getValue());
+                    response = myNode.checkIfFileIdExists(filePair.getKey(), filePair.getValue());
                     break;
 
 
                 // Find node responsible for this sharedFile
-                case FIND_BOOK_SUCCESSOR:
+                case FIND_FILE_SUCCESSOR:
                     id = (long) messageArray[1];
                     response = null;
-                    System.out.println(myNode.getNodeName() + " - SERVER: Find BOOK's successor: " + id);
-                    response = myNode.findBookSuccessor(id);
+                    System.out.println(myNode.getNodeName() + " - SERVER: Find FILE's successor: " + id);
+                    response = myNode.findFileSuccessor(id);
                     break;
 
 
                 // This sharedFile is assigned to me
-                case THIS_BOOK_BELONGS_TO_YOU:
+                case THIS_FILE_BELONGS_TO_YOU:
                     SharedFile sharedFile = (SharedFile) messageArray[1];
                     myNode.getSharedFileList().add(sharedFile);
                     System.out.println(myNode.getNodeName() + " - SERVER: New SharedFile belongs to me: " + sharedFile.getId() + ", " + sharedFile.getTitle());
@@ -189,7 +189,7 @@ public class Server implements Runnable{
 
 
                 // Transfer some of my sharedFiles to my predecessor
-                case TRANSFER_YOUR_BOOKS_TO_ME:
+                case TRANSFER_YOUR_FILES_TO_ME:
                     id = (long) messageArray[1];
                     List<SharedFile> myNewSharedFileList = new ArrayList();
                     List<SharedFile> returnSharedFileList = new ArrayList();
@@ -210,7 +210,7 @@ public class Server implements Runnable{
 
 
                 // new sharedFiles are assigned to me
-                case YOU_HAVE_NEW_BOOKS:
+                case YOU_HAVE_NEW_FILES:
                     List<SharedFile> sharedFiles = (List<SharedFile>) messageArray[1];
                     for (SharedFile b : sharedFiles) {
                         myNode.getSharedFileList().add(b);
@@ -220,9 +220,9 @@ public class Server implements Runnable{
 
 
                 // Find a sharedFile in the network
-                case FIND_BOOK:
-                    Pair<Long, String> searchBook = (Pair<Long, String>) messageArray[1];
-                    List<SharedFile> results = myNode.findBookById(searchBook);
+                case FIND_FILE:
+                    Pair<Long, String> searchFile = (Pair<Long, String>) messageArray[1];
+                    List<SharedFile> results = myNode.findFileById(searchFile);
                     response = results;
                     break;
 
@@ -237,42 +237,42 @@ public class Server implements Runnable{
 
                 // My predecessor want me to return my shared sharedFiles.
                 // Return my the sharedFiles that I've shared with the network.
-                case GIVE_YOUR_SHARED_BOOKS:
-                    response = myNode.getMySharedBooks();
+                case GIVE_YOUR_SHARED_FILES:
+                    response = myNode.getmySharedFiles();
                     break;
 
 
                 // Remove the shared sharedFile containing sharedFile's id and sharedFile's title
-                case REMOVE_SHARED_BOOK:
-                    Pair<Long, String> sharedBook = (Pair<Long, String>) messageArray[1];
-                    myNode.removeSharedBook(sharedBook);
+                case REMOVE_SHARED_FILE:
+                    Pair<Long, String> removeFile = (Pair<Long, String>) messageArray[1];
+                    myNode.removeSharedFile(removeFile);
                     response = MessageType.OK;
                     break;
 
 
                 // check if sharedFile location is still available
-                case IS_BOOK_AVAILABLE:
+                case IS_FILE_AVAILABLE:
                     String loc = (String) messageArray[1];
                     System.out.println(myNode.getNodeName() + " - SERVER: Check if sharedFile location is still available");
                     File file = new File(loc);
                     if (file.exists()) {
-                        response = MessageType.BOOK_IS_AVAILABLE;
+                        response = MessageType.FILE_IS_AVAILABLE;
                     } else {
-                        response = MessageType.BOOK_NOT_AVAILABLE;
+                        response = MessageType.FILE_NOT_AVAILABLE;
                     }
                     break;
 
 
                 // a user wants to download sharedFile
-                case DOWNLOAD_BOOK:
-                String bookLocation = (String) messageArray[1];
-                System.out.println(myNode.getNodeName() + " - SERVER - DOWNLOAD BOOK - Location received from socket: " + bookLocation);
-                if (bookLocation == null) {bookLocation = "";}
+                case DOWNLOAD_FILE:
+                String fileLocation = (String) messageArray[1];
+                System.out.println(myNode.getNodeName() + " - SERVER - DOWNLOAD FILE - Location received from socket: " + fileLocation);
+                if (fileLocation == null) {fileLocation = "";}
 
                 // Creating object to send file
-                File bookFile = new File(bookLocation);
-                byte[] array = new byte[(int) bookFile.length()];
-                FileInputStream fileInputStream = new FileInputStream(bookFile);
+                File fileFile = new File(fileLocation);
+                byte[] array = new byte[(int) fileFile.length()];
+                FileInputStream fileInputStream = new FileInputStream(fileFile);
                 BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
                 bufferedInputStream.read(array, 0, array.length); // copied file into byteArray
 
@@ -283,7 +283,7 @@ public class Server implements Runnable{
 
                 // Sending file through socket
                 OutputStream outputStream = socket.getOutputStream();
-                System.out.println("Sending " + bookLocation + "( size: " + array.length + " bytes)");
+                System.out.println("Sending " + fileLocation + "( size: " + array.length + " bytes)");
                 outputStream.write(array, 0, array.length);            //copying byteArray to socket
                 outputStream.flush();                                        //flushing socket
                 System.out.println("Done.");                                //file has been sent
