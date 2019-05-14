@@ -205,7 +205,7 @@ public class Node implements Serializable {
      * @param contactAddress
      * @return true if successfully initialized finger table. Otherwise, false.
      */
-    public boolean initFingerTable(InetSocketAddress contactAddress) {
+    private boolean initFingerTable(InetSocketAddress contactAddress) {
         try {
             System.out.println("**************************************************************");
             Object[] objArray = new Object[2];
@@ -303,7 +303,7 @@ public class Node implements Serializable {
      *
      * @return true if successfully update other nodes. Otherwise, false.
      */
-    public boolean updateFingerTableOfOtherNodes() {
+    private boolean updateFingerTableOfOtherNodes() {
         try {
             System.out.println("**************************************************************");
             this.fingerTable.printFingerTable();
@@ -369,7 +369,7 @@ public class Node implements Serializable {
         }
     }
 
-    public MessageType sendUpdateFingerTableMessage(InetSocketAddress address, Object[] msgArray) {
+    private MessageType sendUpdateFingerTableMessage(InetSocketAddress address, Object[] msgArray) {
         try {
             Object[] objArray = new Object[2];
             objArray[0] = MessageType.UPDATE_FINGER_TABLE;

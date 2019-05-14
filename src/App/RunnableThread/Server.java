@@ -170,7 +170,7 @@ public class Server implements Runnable{
                     break;
 
 
-                // Find node responsible for this sharedFile
+                // Find node responsible for this file
                 case FIND_FILE_SUCCESSOR:
                     id = (long) messageArray[1];
                     response = null;
@@ -179,7 +179,7 @@ public class Server implements Runnable{
                     break;
 
 
-                // This sharedFile is assigned to me
+                // This book is assigned to me
                 case THIS_FILE_BELONGS_TO_YOU:
                     SharedFile sharedFile = (SharedFile) messageArray[1];
                     myNode.getSharedFileList().add(sharedFile);
@@ -188,7 +188,7 @@ public class Server implements Runnable{
                     break;
 
 
-                // Transfer some of my sharedFiles to my predecessor
+                // Transfer some of my files to my predecessor
                 case TRANSFER_YOUR_FILES_TO_ME:
                     id = (long) messageArray[1];
                     List<SharedFile> myNewSharedFileList = new ArrayList();
